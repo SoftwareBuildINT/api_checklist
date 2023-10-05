@@ -10,9 +10,9 @@ app.use(bodyParser.json());
 const jwt = require('jsonwebtoken');
 // Create a MySQL database connection
 const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '12345',
+  host: '3.7.158.221',
+  user: 'admin_buildINT',
+  password: 'buildINT@2023$',
   database: 'checklist',
 });
 // Connect to the MySQL database
