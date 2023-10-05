@@ -28,7 +28,7 @@ app.post('/login', (req, res) => {
   const { username, password } = req.body;
 
   // Check if the user exists
-  connection.query('SELECT * FROM user_login WHERE username = ? AND password = ?', [username, password], (err, results) => {
+  connection.query(`SELECT * FROM user_login WHERE "username" = ? AND "password" = ?`, [username, password], (err, results) => {
       if (err) {
           console.log(err)
           res.status(500).json({ error: 'Internal server error' });
