@@ -9,7 +9,7 @@ app.use(bodyParser.json());
 
 const jwt = require('jsonwebtoken');
 // Create a MySQL database connection
-const connection = mysql.createConnection({
+const connection = mysql.createPool({
   host: '3.7.158.221',
   user: 'admin_buildINT',
   password: 'buildINT@2023$',
@@ -44,7 +44,7 @@ app.post('/login', (req, res) => {
 
       // User is authenticated; generate a JWT token
       const token = jwt.sign({ id: user.id, username: user.username, role_id: user.role_id }, 'secretkey', {
-          expiresIn: '1h', // Token expires in 1 hour
+          expiresIn: '6h', // Token expires in 1 hour
       });
         // Update the database with the JWT token
       connection.query('UPDATE user_login SET jwt_token = ? WHERE username = ?', [token, user.username], (updateErr, updateResults) => {
@@ -378,6 +378,25 @@ app.post('/baimage', (req, res) => {
 });
 });
   
+app.get('/api/data', (req, res) => {
+  atm_id='ATM001'
+  const query = `
+    SELECT * 
+    FROM ba_inst_images
+    JOIN atm_asset_report ON ba_inst_images.atm_id = atm_asset_report.atm_id
+    JOIN project_engg ON ba_inst_images.atm_id = project_engg.atm_id
+    where atm_id=?
+  `;
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error('Error executing MySQL query:', err);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+    res.json(results);
+  });
+});
 
 // Start the server
 const port = process.env.PORT || 5000;
