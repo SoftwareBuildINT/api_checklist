@@ -16,7 +16,7 @@ const connection = mysql.createPool({
   database: 'checklist',
 });
 // Connect to the MySQL database
-connection.connect((err) => {
+connection.getConnection((err) => {
   if (err) {
     console.error('Error connecting to MySQL database: ' + err.message);
     return;
