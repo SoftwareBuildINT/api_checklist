@@ -1,5 +1,7 @@
 const express = require('express');
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
+const fs = require('fs');
+const PDFDocument = require('pdfkit');
 const bodyParser = require('body-parser');
 const app = express();
 app.set('view engine', 'ejs');
@@ -22,6 +24,7 @@ connection.getConnection((err) => {
     return;
   }
   console.log('Connected to MySQL database');
+  
 });
 // Routes
 app.post('/login', (req, res) => {
@@ -396,6 +399,47 @@ app.get('/api/data', (req, res) => {
     }
     res.json(results);
   });
+});
+async function fetchDataFromDatabase() {
+  //const connection = await mysql.createConnection(dbConfig);
+  const [rows] = await connection.execute('SELECT * FROM atm_asset_report ');
+  connection.end();
+  return rows;
+}
+async function generatePDF(data) {
+  const doc = new PDFDocument();
+  doc.pipe(fs.createWriteStream('output.pdf')); // Save the PDF to a file
+
+  // Customize the PDF content as needed
+  doc.fontSize(18).text('Data from Database', { align: 'center' });
+
+  data.forEach((row) => {
+    doc.fontSize(12).text(`atm_id: ${row.atm_id}`);
+    doc.fontSize(12).text(`city_name: ${row.city_name}`);
+    doc.fontSize(12).text('---'); // Add a separator between entries
+  });
+
+  doc.end(); // Finish the PDF document
+}
+
+app.get('/generate-pdf', async (req, res) => {
+  try {
+    const data = await fetchDataFromDatabase();
+    if (data.length === 0) {
+      return res.status(404).json({ message: 'No data found' });
+    }
+
+    await generatePDF(data);
+
+    // Send the generated PDF as a response
+    res.setHeader('Content-Disposition', 'attachment; filename="output.pdf"');
+    res.setHeader('Content-Type', 'application/pdf');
+    res.status(200);
+    res.sendFile('output.pdf', { root: __dirname });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 // Start the server
