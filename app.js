@@ -401,38 +401,50 @@ app.get('/api/data', (req, res) => {
   });
 });
 
-
 function generatePDF(data) {
-  const doc = new PDFDocument();
-  doc.pipe(fs.createWriteStream('output.pdf')); // Save the PDF to a file
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument();
 
-  // Customize the PDF content as needed
-  doc.fontSize(18).text('Data from Database', { align: 'center' });
+    // Buffer to store PDF data
+    const buffers = [];
+    doc.on('data', (buffer) => buffers.push(buffer));
+    doc.on('end', () => {
+      const pdfData = Buffer.concat(buffers);
+      resolve(pdfData);
+    });
 
-  data.forEach((row) => {
-    doc.fontSize(12).text(`atm_id: ${row.atm_id}`);
-    doc.fontSize(12).text(`city_name: ${row.city_name}`);
-    doc.fontSize(12).text('---'); // Add a separator between entries
+    // Customize the PDF content as needed
+    doc.fontSize(18).text('Data from Database', { align: 'center' });
+
+    data.forEach((row) => {
+      doc.fontSize(12).text(`atm_id: ${row.atm_id}`);
+      doc.fontSize(12).text(`city_name: ${row.city_name}`);
+      doc.fontSize(12).text('---'); // Add a separator between entries
+    });
+
+    doc.end(); // Finish the PDF document
   });
-
-  doc.end(); // Finish the PDF document
 }
 
 app.get('/generate-pdf', async (req, res) => {
   try {
-    connection.query(`select * from atm_asset_report`, (err, results) => {
+    connection.query(`select * from atm_asset_report`, async (err, results) => {
+      if (err) {
+        console.error('Error:', err);
+        return res.status(500).json({ error: 'Database Error' });
+      }
+
       const data = results;
       if (data.length === 0) {
         return res.status(404).json({ message: 'No data found' });
       }
-  
-      generatePDF(data);
-  
+
+      const pdfData = await generatePDF(data);
+
       // Send the generated PDF as a response
       res.setHeader('Content-Disposition', 'attachment; filename="output.pdf"');
       res.setHeader('Content-Type', 'application/pdf');
-      res.status(200);
-      res.sendFile('output.pdf', { root: __dirname });
+      res.status(200).end(pdfData);
     });
     
   } catch (error) {
@@ -440,6 +452,7 @@ app.get('/generate-pdf', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 // Start the server
 const port = process.env.PORT || 5000;
