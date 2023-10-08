@@ -1,5 +1,5 @@
 const express = require('express');
-const mysql = require('mysql2/promise');
+const mysql = require('mysql2');
 const fs = require('fs');
 const PDFDocument = require('pdfkit');
 const bodyParser = require('body-parser');
@@ -400,13 +400,9 @@ app.get('/api/data', (req, res) => {
     res.json(results);
   });
 });
-async function fetchDataFromDatabase() {
-  //const connection = await mysql.createConnection(dbConfig);
-  const [rows] = await connection.execute('SELECT * FROM atm_asset_report ');
-  connection.end();
-  return rows;
-}
-async function generatePDF(data) {
+
+
+function generatePDF(data) {
   const doc = new PDFDocument();
   doc.pipe(fs.createWriteStream('output.pdf')); // Save the PDF to a file
 
@@ -424,18 +420,21 @@ async function generatePDF(data) {
 
 app.get('/generate-pdf', async (req, res) => {
   try {
-    const data = await fetchDataFromDatabase();
-    if (data.length === 0) {
-      return res.status(404).json({ message: 'No data found' });
-    }
-
-    await generatePDF(data);
-
-    // Send the generated PDF as a response
-    res.setHeader('Content-Disposition', 'attachment; filename="output.pdf"');
-    res.setHeader('Content-Type', 'application/pdf');
-    res.status(200);
-    res.sendFile('output.pdf', { root: __dirname });
+    connection.query(`select * from atm_asset_report`, (err, results) => {
+      const data = results;
+      if (data.length === 0) {
+        return res.status(404).json({ message: 'No data found' });
+      }
+  
+      generatePDF(data);
+  
+      // Send the generated PDF as a response
+      res.setHeader('Content-Disposition', 'attachment; filename="output.pdf"');
+      res.setHeader('Content-Type', 'application/pdf');
+      res.status(200);
+      res.sendFile('output.pdf', { root: __dirname });
+    });
+    
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ error: 'Internal Server Error' });
