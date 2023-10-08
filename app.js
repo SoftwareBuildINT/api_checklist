@@ -417,18 +417,35 @@ function generatePDF(data) {
     doc.fontSize(18).text('Data from Database', { align: 'center' });
 
     data.forEach((row) => {
-      doc.fontSize(12).text(`atm_id: ${row.atm_id}`);
-      doc.fontSize(12).text(`city_name: ${row.city_name}`);
-      doc.fontSize(12).text('---'); // Add a separator between entries
+      // Check if `row.before_inst_images` is a valid image path or binary data
+      if (typeof row.before_inst_images === 'string') {
+        // It's a file path, so embed the image using the path
+        doc.image(row.before_inst_images, {
+          fit: [250, 300],
+          align: 'center',
+          valign: 'center'
+        });
+      } else if (Buffer.isBuffer(row.before_inst_images)) {
+        // It's binary data, so embed the image using the binary data
+        doc.image(row.before_inst_images, {
+          fit: [250, 300],
+          align: 'center',
+          valign: 'center'
+        });
+      }
+      
+      // Add a separator between entries
+      doc.fontSize(12).text('---');
     });
 
     doc.end(); // Finish the PDF document
   });
 }
 
+
 app.get('/generate-pdf', async (req, res) => {
   try {
-    connection.query(`select * from atm_asset_report`, async (err, results) => {
+    connection.query(`select * from ba_inst_images`, async (err, results) => {
       if (err) {
         console.error('Error:', err);
         return res.status(500).json({ error: 'Database Error' });
