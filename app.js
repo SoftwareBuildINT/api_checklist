@@ -4,6 +4,7 @@ const fs = require('fs');
 const PDFDocument = require('pdfkit');
 const bodyParser = require('body-parser');
 const app = express();
+const multer = require('multer');
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -456,6 +457,34 @@ app.get('/generate-pdf', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+// Define the API route for uploading an image
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+app.post('/upload-image', upload.single('image'), async (req, res) => {
+  try {
+    const image = req.file.buffer;
+    const id = 1 // The uploaded image data
+    // Assuming you have an 'ba_inst_images' table with 'before_inst_images' column
+    const query = (`UPDATE ba_inst_images SET before_inst_images = ? where id = ?`);
+
+    // Execute the query
+    connection.query(query, [image, id], (err, results) => {
+      if (err) {
+        console.error('Error updating image:', err);
+        res.status(500).json({ message: 'Image not uploaded successfully', error: err });
+      } else {
+        console.log('Image uploaded successfully');
+        res.status(200).json({ message: 'Image uploaded successfully' });
+      }
+    });
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 
 
 // Start the server
