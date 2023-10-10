@@ -465,7 +465,7 @@ function generatePDF(data) {
     doc.fontSize(18).text('Data from Database', { align: 'center' });
 
     data.forEach((row) => {
-        doc.image(row.before_inst_images, {
+        doc.image(row.AC1, {
           fit: [250, 300],
           align: 'center',
           valign: 'center'
@@ -473,6 +473,15 @@ function generatePDF(data) {
       // Add a separator between entries
       doc.fontSize(12).text('---');
     });
+    data.forEach((row) => {
+      doc.image(row.AC2, {
+        fit: [250, 300],
+        align: 'center',
+        valign: 'center'
+      });
+    // Add a separator between entries
+    doc.fontSize(12).text('---');
+  });
     doc.end(); // Finish the PDF document
   });
 }
