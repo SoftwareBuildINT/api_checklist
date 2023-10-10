@@ -34,7 +34,7 @@ app.post('/login', (req, res) => {
   const { username, password } = req.body;
 
   // Check if the user exists and the password is correct
-  db.query(
+  connection.query(
     'SELECT * FROM user_login WHERE username = ? AND password = ?',
     [username, password],
     (err, results) => {
@@ -67,7 +67,7 @@ app.post('/login', (req, res) => {
 app.post('/verify', (req, res) => {
   const { email, otp } = req.body;
   // Check if the provided OTP matches the one in the database
-  db.query(
+  connection.query(
     'SELECT * FROM user_login WHERE email = ? AND otp = ?',
     [email, otp],
     (err, results) => {
@@ -96,7 +96,7 @@ app.post('/verify', (req, res) => {
         );
 
         // Update the database with the JWT token
-        db.query(
+        connection.query(
           'UPDATE user_login SET jwt_token = ? WHERE email = ?',
           [token, email],
           (updateErr) => {
@@ -131,7 +131,7 @@ function sendOTP(email) {
     );
 
     // Save the OTP in the database
-    db.query(
+    connection.query(
       'UPDATE user_login SET otp = ?, expiration_time = ? WHERE email = ?',
       [otp, expiration_time, email],
       (updateErr) => {
