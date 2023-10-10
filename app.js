@@ -313,73 +313,118 @@ app.post('/project', (req, res) => {
 });
   
 // Routes
-app.post('/baimage', (req, res) => {
-  const {
-    atm_id,
-    city_name,
-    date_of_visit,
-    atm_site_address,
-    mse_name,
-    mse_cnct_no,
-    mse_email,
-    before_inst_images, 
-    after_inst_images ,
-    remarks,
-    engg_name,
-    token,
-    userName,
-    engg_cont_no
-  } = req.body;
-  connection.query(`select jwt_token from user_login where username = "${userName}"`, (err, results) => {
-    if (err) {
-          console.error('Error inserting data into MySQL:', err);
-          return res.status(500).json({ status: 500, message: 'Error inserting data into the database.' });
-        } else {
-            if(req.body["token"] == results[0,"jwt_token"]){
-              console.log(true)
-  // Insert form data into the MySQL database
+app.post('/baimage', upload.fields([{ name: 'AC1', maxCount: 1 }, { name: 'AC2', maxCount: 1 }]), (req, res) => {
+
+  // const {
+  //   atm_id,
+  //   ATMOutdoorPhoto,
+  //   Signage,
+  //   AC1,
+  //   AC2,
+  //   ACCompressor,
+  //   DoorPhoto_VisibleSensor,
+  //   ATMMachine, 
+  //   TempreatureSensorMounting ,
+  //   AtmPanelBackroom,
+  //   SurviellancePanel,
+  //   token,
+  //   UPS,
+  //   Batteries,
+  //   VsatRouter,
+  //   PorchLight,
+  //   LightPanelLobbyLight,
+  //   iATMBoxMountingPlace,
+  //   atmaddress,
+  //   userName
+  // } = req.body;
+  const AC1 = req.files['AC1'][0].buffer;
+  const AC2 = req.files['AC2'][0].buffer;
+  const atm_id = req.body.atm_id
   const sql = `INSERT INTO ba_inst_images(
-    atm_id,
-    city_name,
-    date_of_visit,
-    atm_site_address,
-    mse_name,
-    mse_cnct_no,
-    mse_email,
-    before_inst_images, 
-    after_inst_images ,
-    remarks,
-    engg_name,
-    engg_cont_no
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;  
-  
-  const values = [
-    atm_id,
-    city_name,
-    date_of_visit,
-    atm_site_address,
-    mse_name,
-    mse_cnct_no,
-    mse_email,
-    before_inst_images, 
-    after_inst_images ,
-    remarks,
-    engg_name,
-    engg_cont_no
-  ];
-  connection.query(sql, values, (err, results) => {
-    if (err) {
-      console.error('Error inserting data into MySQL:', err);
+         AC1, AC2, atm_id
+          ) VALUES ( ?, ?, ?)`;  
+  const values = [AC1, AC2, atm_id];
+  connection.query(sql, values, (err, results)=> {
+    if(err) {
+      console.log(err);
       return res.status(500).json({ status: 500, message: 'Error inserting data into the database.' });
+    } else {
+      console.log(results);
+      return res.json({ status: 200, message: 'Item added successfully' });
     }
+  })
+
+
+//   connection.query(`select jwt_token from user_login where username = "${userName}"`, (err, results) => {
+//     console.log(err)
+//     if (err) {
+          
+//           console.error('Error inserting data into MySQL:', err);
+//           return res.status(500).json({ status: 500, message: 'Error inserting data into the database.' });
+//         } else {
+//             if(req.body["token"] == results[0,"jwt_token"]){
+//               console.log(true)
+//   // Insert form data into the MySQL database
+//   const sql = `INSERT INTO ba_inst_images(
+//     atm_id,
+//     ATMOutdoorPhoto,
+//     Signage,
+//     AC1,
+//     AC2,
+//     ACCompressor,
+//     DoorPhoto_VisibleSensor,
+//     ATMMachine, 
+//     TempreatureSensorMounting ,
+//     AtmPanelBackroom,
+//     SurviellancePanel,
+//     token,
+//     UPS,
+//     Batteries,
+//     VsatRouter,
+//     PorchLight,
+//     LightPanelLobbyLight,
+//     iATMBoxMountingPlace,
+//     atmaddress,
+//     userName
+//   ) VALUES ( ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?,?,?,?,?,?)`;  
+  
+//   const values = [
+//     atm_id,
+//     ATMOutdoorPhoto,
+//     Signage,
+//     AC1,
+//     AC2,
+//     ACCompressor,
+//     DoorPhoto_VisibleSensor,
+//     ATMMachine, 
+//     TempreatureSensorMounting ,
+//     AtmPanelBackroom,
+//     SurviellancePanel,
+//     token,
+//     UPS,
+//     Batteries,
+//     VsatRouter,
+//     PorchLight,
+//     LightPanelLobbyLight,
+//     iATMBoxMountingPlace,
+//     atmaddress,
+//     userName
+//   ];
+//   connection.query(sql, values, (err, results) => {
+//     console.log('sadad',err)
+//     if (err) {
       
-    return res.json({ status: 200, message: 'Item added successfully' });
-  });
-} else {
-    return res.json({ status: 500, message: 'Invalid Token' }); 
-}
-}
-});
+//       console.error('Error inserting data into MySQL:', err);
+//       return res.status(500).json({ status: 500, message: 'Error inserting data into the database.' });
+//     }
+      
+//     return res.json({ status: 200, message: 'Item added successfully' });
+//   });
+// } else {
+//     return res.json({ status: 500, message: 'Invalid Token' }); 
+// }
+// }
+// });
 });
   
 app.get('/api/data', (req, res) => {
