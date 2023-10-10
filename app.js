@@ -9,6 +9,8 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+const randomstring = require('randomstring');
+const nodemailer = require('nodemailer');
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
