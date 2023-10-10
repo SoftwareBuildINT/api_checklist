@@ -9,6 +9,8 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 const jwt = require('jsonwebtoken');
 // Create a MySQL database connection
@@ -504,8 +506,7 @@ app.get('/generate-pdf', async (req, res) => {
 });
 
 // Define the API route for uploading an image
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
+
 app.post('/upload-image', upload.single('image'), async (req, res) => {
   try {
     const image = req.file.buffer;
