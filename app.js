@@ -33,37 +33,141 @@ connection.getConnection((err) => {
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
 
-  // Check if the user exists
-  connection.query('SELECT * FROM user_login WHERE username = ? AND password = ?', [username, password], (err, results) => {
+  // Check if the user exists and the password is correct
+  db.query(
+    'SELECT * FROM user_login WHERE username = ? AND password = ?',
+    [username, password],
+    (err, results) => {
       if (err) {
-          console.log(err)
-          res.status(500).json({ error: 'Internal server error' });
-          return;
+        console.log(err);
+        res.status(500).json({ error: 'Internal server error' });
+        return;
       }
 
       if (results.length === 0) {
-          res.status(401).json({ error: 'Invalid username or password' });
-          return;
+        res.status(401).json({ error: 'Invalid username or password' });
+        return;
       }
 
+      // User is authenticated; proceed to step 2 (OTP generation)
       const user = results[0];
+      sendOTP(user.email)
+        .then(() => {
+          res.status(200).json({ message: 'OTP sent to your email for verification' });
+        })
+        .catch((error) => {
+          console.error(error);
+          res.status(500).json({ error: 'Internal server error' });
+        });
+    }
+  );
+});
 
-      // User is authenticated; generate a JWT token
-      const token = jwt.sign({ id: user.id, username: user.username, role_id: user.role_id }, 'secretkey', {
-          expiresIn: '6h', // Token expires in 1 hour
-      });
-        // Update the database with the JWT token
-      connection.query('UPDATE user_login SET jwt_token = ? WHERE username = ?', [token, user.username], (updateErr, updateResults) => {
-          if (updateErr) {
-              console.log(updateErr);
-              res.status(500).json({ error: 'Failed to update JWT token in the database' });
-              return;
+// Step 2: OTP Verification and Token Generation
+app.post('/verify', (req, res) => {
+  const { email, otp } = req.body;
+  // Check if the provided OTP matches the one in the database
+  db.query(
+    'SELECT * FROM user_login WHERE email = ? AND otp = ?',
+    [email, otp],
+    (err, results) => {
+      if (err) {
+        console.error('Error checking OTP:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+        return;
+      }
+
+      if (results.length === 0) {
+        res.status(401).json({ error: 'Invalid OTP' });
+        return;
+      }
+
+      const currentTime = new Date(); // get current Time
+      const otpExpiretime = new Date(results[0].expiration_time);
+      if (currentTime < otpExpiretime) {
+        // OTP is valid; generate a JWT token
+        const user = results[0];
+        const token = jwt.sign(
+          { id: user.id, email: user.email, role_id: user.role_id },
+          'secretkey',
+          {
+            expiresIn: '1h', // Token expires in 1 hour
           }
-          
-      res.status(200).json({ "token":token});
+        );
+
+        // Update the database with the JWT token
+        db.query(
+          'UPDATE user_login SET jwt_token = ? WHERE email = ?',
+          [token, email],
+          (updateErr) => {
+            if (updateErr) {
+              console.error(
+                'Error updating JWT token in the database:',
+                updateErr
+              );
+              res.status(500).json({
+                error: 'Failed to update JWT token in the database',
+              });
+              return;
+            }
+
+            res.status(200).json({ token });
+          }
+        );
+      } else {
+        res.status(401).json({ error: 'OTP has expired' });
+      }
+    }
+  );
+});
+
+// Helper function to send OTP via email
+function sendOTP(email) {
+  return new Promise((resolve, reject) => {
+    const otp = randomstring.generate({ length: 6, charset: 'numeric' });
+    const otpCreatedAt = new Date();
+    const expiration_time = new Date(
+      otpCreatedAt.setSeconds(otpCreatedAt.getSeconds() + 120)
+    );
+
+    // Save the OTP in the database
+    db.query(
+      'UPDATE user_login SET otp = ?, expiration_time = ? WHERE email = ?',
+      [otp, expiration_time, email],
+      (updateErr) => {
+        if (updateErr) {
+          reject(updateErr);
+        }
+
+        // Send the OTP via email
+        const transporter = nodemailer.createTransport({
+          host: 'smtp.rediffmailpro.com',
+          port: 465,
+          secure: true, // for SSL
+          auth: {
+            user: 'trainee.software@buildint.co',
+            pass: 'BuildINT@123',
+          },
+        });
+
+        const mailOptions = {
+          from: 'trainee.software@buildint.co',
+          to: email,
+          subject: 'Your OTP for Login',
+          text: `Your OTP for login is: ${otp}`,
+        };
+
+        transporter.sendMail(mailOptions, (emailErr) => {
+          if (emailErr) {
+            reject(emailErr);
+          }
+
+          resolve();
+        });
+      }
+    );
   });
-});
-});
+}
 //Routes
 app.post('/assest', (req, res) => {
   const {
@@ -315,118 +419,40 @@ app.post('/project', (req, res) => {
 });
   
 // Routes
-app.post('/baimage', upload.fields([{ name: 'AC1', maxCount: 1 }, { name: 'AC2', maxCount: 1 }]), (req, res) => {
+app.post('/baimage', upload.fields([{ name: 'ATMOutdoorPhoto', maxCount: 1 },{ name: 'ACCompressor', maxCount: 1 },{ name: 'DoorPhoto_VisibleSensor', maxCount: 1 },{ name: 'ATMMachine', maxCount: 1 },{ name: 'TempreatureSensorMounting', maxCount: 1 },{ name: 'AtmPanelBackroom', maxCount: 1 },{ name: 'SurviellancePanel', maxCount: 1 },{ name: 'UPS', maxCount: 1 },{ name: 'Batteries', maxCount: 1 },{ name: 'VsatRouter', maxCount: 1 },{ name: 'PorchLight', maxCount: 1 },{ name: 'Signage', maxCount: 1 },{ name: 'iATMBoxMountingPlace', maxCount: 1 },{ name: 'LightPanelLobbyLight', maxCount: 1 },{ name: 'AC1', maxCount: 1 }, { name: 'AC2', maxCount: 1 }]), (req, res) => {
 
-  // const {
-  //   atm_id,
-  //   ATMOutdoorPhoto,
-  //   Signage,
-  //   AC1,
-  //   AC2,
-  //   ACCompressor,
-  //   DoorPhoto_VisibleSensor,
-  //   ATMMachine, 
-  //   TempreatureSensorMounting ,
-  //   AtmPanelBackroom,
-  //   SurviellancePanel,
-  //   token,
-  //   UPS,
-  //   Batteries,
-  //   VsatRouter,
-  //   PorchLight,
-  //   LightPanelLobbyLight,
-  //   iATMBoxMountingPlace,
-  //   atmaddress,
-  //   userName
-  // } = req.body;
   const AC1 = req.files['AC1'][0].buffer;
   const AC2 = req.files['AC2'][0].buffer;
+  const ATMOutdoorPhoto = req.files['ATMOutdoorPhoto'][0].buffer;
+  const Signage = req.files['Signage'][0].buffer;
+  const ACCompressor = req.files['ACCompressor'][0].buffer;
+  const DoorPhoto_VisibleSensor = req.files['DoorPhoto_VisibleSensor'][0].buffer;
+  const ATMMachine = req.files['ATMMachine'][0].buffer;
+  const TempreatureSensorMounting = req.files['TempreatureSensorMounting'][0].buffer;
+  const AtmPanelBackroom = req.files['AtmPanelBackroom'][0].buffer;
+  const SurviellancePanel = req.files['SurviellancePanel'][0].buffer;
+  const UPS = req.files['UPS'][0].buffer;
+  const Batteries = req.files['Batteries'][0].buffer;
+  const VsatRouter = req.files['VsatRouter'][0].buffer;
+  const PorchLight = req.files['PorchLight'][0].buffer;
+  const LightPanelLobbyLight = req.files['LightPanelLobbyLight'][0].buffer;
+  const iATMBoxMountingPlace = req.files['iATMBoxMountingPlace'][0].buffer;
+  const atmaddress = req.body.atmaddress
   const atm_id = req.body.atm_id
   const sql = `INSERT INTO ba_inst_images(
-         AC1, AC2, atm_id
-          ) VALUES ( ?, ?, ?)`;  
-  const values = [AC1, AC2, atm_id];
+         AC1, AC2, atm_id,ATMOutdoorPhoto,Signage,ACCompressor,DoorPhoto_VisibleSensor,ATMMachine,TempreatureSensorMounting,
+         AtmPanelBackroom,SurviellancePanel,UPS,Batteries,VsatRouter,PorchLight,LightPanelLobbyLight,iATMBoxMountingPlace,atmaddress
+          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;  
+  const values = [AC1, AC2, atm_id,ATMOutdoorPhoto,Signage,ACCompressor,DoorPhoto_VisibleSensor,ATMMachine,TempreatureSensorMounting,
+    AtmPanelBackroom,SurviellancePanel,UPS,Batteries,VsatRouter,PorchLight,LightPanelLobbyLight,iATMBoxMountingPlace,atmaddress];
   connection.query(sql, values, (err, results)=> {
     if(err) {
       console.log(err);
       return res.status(500).json({ status: 500, message: 'Error inserting data into the database.' });
     } else {
-      console.log(results);
-      return res.json({ status: 200, message: 'Item added successfully' });
+      return res.json({ status: 200, message: 'Item added successfully',  insertId: results["insertId"]});
     }
   })
-
-
-//   connection.query(`select jwt_token from user_login where username = "${userName}"`, (err, results) => {
-//     console.log(err)
-//     if (err) {
-          
-//           console.error('Error inserting data into MySQL:', err);
-//           return res.status(500).json({ status: 500, message: 'Error inserting data into the database.' });
-//         } else {
-//             if(req.body["token"] == results[0,"jwt_token"]){
-//               console.log(true)
-//   // Insert form data into the MySQL database
-//   const sql = `INSERT INTO ba_inst_images(
-//     atm_id,
-//     ATMOutdoorPhoto,
-//     Signage,
-//     AC1,
-//     AC2,
-//     ACCompressor,
-//     DoorPhoto_VisibleSensor,
-//     ATMMachine, 
-//     TempreatureSensorMounting ,
-//     AtmPanelBackroom,
-//     SurviellancePanel,
-//     token,
-//     UPS,
-//     Batteries,
-//     VsatRouter,
-//     PorchLight,
-//     LightPanelLobbyLight,
-//     iATMBoxMountingPlace,
-//     atmaddress,
-//     userName
-//   ) VALUES ( ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?,?,?,?,?,?)`;  
-  
-//   const values = [
-//     atm_id,
-//     ATMOutdoorPhoto,
-//     Signage,
-//     AC1,
-//     AC2,
-//     ACCompressor,
-//     DoorPhoto_VisibleSensor,
-//     ATMMachine, 
-//     TempreatureSensorMounting ,
-//     AtmPanelBackroom,
-//     SurviellancePanel,
-//     token,
-//     UPS,
-//     Batteries,
-//     VsatRouter,
-//     PorchLight,
-//     LightPanelLobbyLight,
-//     iATMBoxMountingPlace,
-//     atmaddress,
-//     userName
-//   ];
-//   connection.query(sql, values, (err, results) => {
-//     console.log('sadad',err)
-//     if (err) {
-      
-//       console.error('Error inserting data into MySQL:', err);
-//       return res.status(500).json({ status: 500, message: 'Error inserting data into the database.' });
-//     }
-      
-//     return res.json({ status: 200, message: 'Item added successfully' });
-//   });
-// } else {
-//     return res.json({ status: 500, message: 'Invalid Token' }); 
-// }
-// }
-// });
 });
   
 app.get('/api/data', (req, res) => {
