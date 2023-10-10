@@ -13,6 +13,15 @@ const randomstring = require('randomstring');
 const nodemailer = require('nodemailer');
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
+// Helper function to send OTP via email
+const AWS = require('aws-sdk');
+
+const ses = new AWS.SES({
+  apiVersion: '2010-12-01',
+  accessKeyId: 'AKIATNFEXW5ZAMWNGM4Q',
+  secretAccessKey: '6KKI3taiLon4Uj3yBkZW7qRirtztirLryULXDjWz',
+  region: 'ap-south-1' // Change this to your desired AWS region
+}); 
 
 const jwt = require('jsonwebtoken');
 // Create a MySQL database connection
@@ -123,7 +132,8 @@ app.post('/verify', (req, res) => {
   );
 });
 
-// Helper function to send OTP via email
+
+
 function sendOTP(email) {
   return new Promise((resolve, reject) => {
     const otp = randomstring.generate({ length: 6, charset: 'numeric' });
@@ -139,37 +149,34 @@ function sendOTP(email) {
       (updateErr) => {
         if (updateErr) {
           reject(updateErr);
+          return;
         }
 
         // Send the OTP via email
-        const transporter = nodemailer.createTransport({
-          host: 'smtp.rediffmailpro.com',
-          port: 465,
-          secure: true, // for SSL
-          auth: {
-            user: 'trainee.software@buildint.co',
-            pass: 'BuildINT@123',
+        const params = {
+          Destination: {
+            ToAddresses: [email],
           },
-        });
-
-        const mailOptions = {
-          from: 'trainee.software@buildint.co',
-          to: email,
-          subject: 'Your OTP for Login',
-          text: `Your OTP for login is: ${otp}`,
+          Message: {
+            Body: { Html: { Charset: "UTF-8", Data: `Your OTP for login is: ${otp}` } },
+            Subject: { Charset: 'UTF-8', Data: 'Your OTP for login' },
+          },
+          Source: 'trainee.software@buildint.co', // This should be a verified SES sender email address
         };
 
-        transporter.sendMail(mailOptions, (emailErr) => {
+        ses.sendEmail(params, (emailErr, data) => {
           if (emailErr) {
-            reject(emailErr);
+             reject(emailErr);
+             console.log(emailErr)
+          } else {
+            resolve();
           }
-
-          resolve();
         });
       }
     );
   });
 }
+
 //Routes
 app.post('/assest', (req, res) => {
   const {
