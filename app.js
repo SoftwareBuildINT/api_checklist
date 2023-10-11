@@ -89,7 +89,7 @@ app.post('/verify', (req, res) => {
       }
 
       if (results.length === 0) {
-        res.status(401).json({ error: 'Invalid OTP' });
+        res.status(200).json({ error: 'Invalid OTP' });
         return;
       }
 
@@ -108,7 +108,7 @@ app.post('/verify', (req, res) => {
 
         // Update the database with the JWT token
         connection.query(
-          'UPDATE user_login SET jwt_token = ? WHERE email = ?',
+          'UPDATE user_login SET jwt_token = ? WHERE username = ?',
           [token, username],
           (updateErr) => {
             if (updateErr) {
