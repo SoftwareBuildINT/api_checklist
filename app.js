@@ -76,11 +76,11 @@ app.post('/login', (req, res) => {
 
 // Step 2: OTP Verification and Token Generation
 app.post('/verify', (req, res) => {
-  const { email, otp } = req.body;
+  const { username, otp } = req.body;
   // Check if the provided OTP matches the one in the database
   connection.query(
-    'SELECT * FROM user_login WHERE email = ? AND otp = ?',
-    [email, otp],
+    'SELECT * FROM user_login WHERE username = ? AND otp = ?',
+    [username, otp],
     (err, results) => {
       if (err) {
         console.error('Error checking OTP:', err);
@@ -109,7 +109,7 @@ app.post('/verify', (req, res) => {
         // Update the database with the JWT token
         connection.query(
           'UPDATE user_login SET jwt_token = ? WHERE email = ?',
-          [token, email],
+          [token, username],
           (updateErr) => {
             if (updateErr) {
               console.error(
