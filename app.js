@@ -126,7 +126,7 @@ app.post('/verify', (req, res) => {
           }
         );
       } else {
-        res.status(401).json({ error: 'OTP has expired' });
+        res.status(200).json({ error: 'OTP has expired' });
       }
     }
   );
