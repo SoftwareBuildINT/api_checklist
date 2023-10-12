@@ -487,15 +487,6 @@ app.get('/api/data', (req, res) => {
 function generatePDF(data, project) {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({size: [595.28, 955.89]});
-    mammoth.extractRawText({ path: './templates/PROJECT ENGINEER CHECKIST.docx' })
-      .then((result) => {
-        const html = result.value;
-        // Use Puppeteer to convert the HTML to PDF
-        // ...
-      })
-      .catch((err) => {
-        console.error(err);
-      });
     // Buffer to store PDF data
     const buffers = [];
     doc.on('data', (buffer) => buffers.push(buffer));
