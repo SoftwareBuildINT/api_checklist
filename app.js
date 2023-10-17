@@ -12,7 +12,8 @@ app.use(bodyParser.json());
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 const jwt = require('jsonwebtoken');
-const moment = require('moment')
+const moment = require('moment');
+const AWS = require('aws-sdk');
 const ses = new AWS.SES({
   apiVersion: '2010-12-01',
   accessKeyId: 'AKIATNFEXW5ZAMWNGM4Q',
