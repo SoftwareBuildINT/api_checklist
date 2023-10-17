@@ -7,6 +7,8 @@ const app = express();
 const multer = require('multer');
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
+const randomstring = require('randomstring');
+const nodemailer = require('nodemailer');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 const storage = multer.memoryStorage();
@@ -76,6 +78,49 @@ app.post('/login', (req, res) => {
     }
   );
 });
+
+function sendOTP(email) {
+  return new Promise((resolve, reject) => {
+    const otp = randomstring.generate({ length: 6, charset: 'numeric' });
+    const otpCreatedAt = new Date();
+    const expiration_time = new Date(
+      otpCreatedAt.setSeconds(otpCreatedAt.getSeconds() + 120)
+    );
+
+    // Save the OTP in the database
+    connection.query(
+      'UPDATE user_login SET otp = ?, expiration_time = ? WHERE email = ?',
+      [otp, expiration_time, email],
+      (updateErr) => {
+        if (updateErr) {
+          reject(updateErr);
+          return;
+        }
+
+        // Send the OTP via email
+        const params = {
+          Destination: {
+            ToAddresses: [email],
+          },
+          Message: {
+            Body: { Html: { Charset: "UTF-8", Data: `Your OTP for login is: ${otp}` } },
+            Subject: { Charset: 'UTF-8', Data: 'Your OTP for login' },
+          },
+          Source: 'trainee.software@buildint.co', // This should be a verified SES sender email address
+        };
+
+        ses.sendEmail(params, (emailErr, data) => {
+          if (emailErr) {
+            reject(emailErr);
+            console.log(emailErr)
+          } else {
+            resolve();
+          }
+        });
+      }
+    );
+  });
+}
 
 // Step 2: OTP Verification and Token Generation
 app.post('/verify', (req, res) => {
