@@ -12,8 +12,6 @@ app.use(bodyParser.json());
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 const jwt = require('jsonwebtoken');
-const puppeteer = require('puppeteer');
-const mammoth = require('mammoth');
 const moment = require('moment')
 const ses = new AWS.SES({
   apiVersion: '2010-12-01',
