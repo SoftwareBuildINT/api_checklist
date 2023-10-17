@@ -494,9 +494,9 @@ app.post('/afterimage', upload.fields([{ name: 'iATMBox', maxCount: 1 }, { name:
   const sql = `INSERT INTO after_inst_images(
          AC1, AC2, atm_id,ATMOutdoorPhoto,Signage,ACCompressor,DoorPhoto_VisibleSensor,ATMMachine,TempreatureSensorMounting,
          AtmPanelBackroom,SurviellancePanel,iATMBox,UPS,Batteries,VsatRouter,PorchLight,LightPanelLobbyLight,atmaddress
-          ) VALUES (?,?,?,?,?,?,?,SurviellancePanel?,?,?,?,?,?,?,?,?,?,?)`;
+          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
   const values = [AC1, AC2, atm_id, ATMOutdoorPhoto, Signage, ACCompressor, DoorPhoto_VisibleSensor, ATMMachine, TempreatureSensorMounting,
-    AtmPanelBackroom, , UPS, Batteries, VsatRouter, iATMBox, PorchLight, LightPanelLobbyLight, atmaddress];
+    AtmPanelBackroom, SurviellancePanel, UPS, Batteries, VsatRouter, iATMBox, PorchLight, LightPanelLobbyLight, atmaddress];
   connection.query(sql, values, (err, results) => {
     if (err) {
       console.log(err);
