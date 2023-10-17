@@ -375,7 +375,7 @@ app.post('/project', (req, res) => {
 
 // Create an API endpoint to fetch data from the database
 app.get('/enggdataproject', (req, res) => {
-  const query = 'SELECT e_id,engg_name FROM engg_sign ';
+  const query = 'SELECT e_id,engg_name,contact_no FROM engg_sign ';
   connection.query(query, (err, results) => {
     if (err) {
       console.error('Database query error: ' + err);
