@@ -672,34 +672,6 @@ function generatePDFprojectengg(data, project) {
       doc.font('Times-Bold').fontSize(10).text('Signature: ', 345, 799, { width: 504, height: 40, align: 'left' })
       doc.image(row.sign,391,848,{width:100 , height:40})
     });
-
-    // doc.addPage();
-    // data.ba_inst_images.forEach((row) => {
-    //   // doc.image(row.iATMBoxMountingPlace, {width:300}).text('Proportional to width', 0, 0);
-    //   // doc.image(row.iATMBoxMountingPlace, {width:300}).text('Proportional to width', 0, 0);
-    //   doc.image(row.DoorPhoto_VisibleSensor, {width: 300}).fillColor('white').text('.').fillColor('black').text('DoorPhoto_VisibleSensor').fillColor('white').text('.').fillColor('white').text('');
-    //   doc.image(row.ATMOutdoorPhoto, {width: 300}).fillColor('white').text('.').fillColor('black').text('ATMOutdoorPhoto').fillColor('white').text('.').fillColor('white').text('');
-    //   doc.image(row.Signage, {width: 300}).fillColor('white').text('.').fillColor('black').text('Signage').fillColor('white').text('.').fillColor('white').text('');
-    //   doc.addPage();
-    //   doc.image(row.AC1, {width: 300}).fillColor('white').text('.').fillColor('black').text('AC1').fillColor('white').text('.').fillColor('white').text('');
-    //   doc.image(row.AC2, {width: 300}).fillColor('white').text('.').fillColor('black').text('AC2').fillColor('white').text('.').fillColor('white').text('');
-    //   doc.image(row.ACCompressor, {width: 300}).fillColor('white').text('.').fillColor('black').text('ACCompressor').fillColor('white').text('.').fillColor('white').text('');
-    //   doc.addPage();
-    //   doc.image(row.ATMMachine, {width: 300}).fillColor('white').text('.').fillColor('black').text('ATMMachine').fillColor('white').text('.').fillColor('white').text('');
-    //   doc.image(row.TempreatureSensorMounting, {width: 300}).fillColor('white').text('.').fillColor('black').text('TempreatureSensorMounting').fillColor('white').text('.').fillColor('white').text('');
-    //   doc.image(row.AtmPanelBackroom, {width: 300}).fillColor('white').text('.').fillColor('black').text('AtmPanelBackroom').fillColor('white').text('.').fillColor('white').text('');
-    //   doc.addPage();
-    //   doc.image(row.SurviellancePanel, {width: 300}).fillColor('white').text('.').fillColor('black').text('SurviellancePanel').fillColor('white').text('.').fillColor('white').text('');
-    //   doc.image(row.UPS, {width: 300}).fillColor('white').text('.').fillColor('black').text('UPS').fillColor('white').text('.').fillColor('white').text('');
-    //   doc.image(row.Batteries, {width: 300}).fillColor('white').text('.').fillColor('black').text('Batteries').fillColor('white').text('.').fillColor('white').text('');
-    //   doc.addPage();
-    //   doc.image(row.VsatRouter, {width: 300}).fillColor('white').text('.').fillColor('black').text('VsatRouter').fillColor('white').text('.').fillColor('white').text('');
-    //   doc.image(row.PorchLight, {width: 300}).fillColor('white').text('.').fillColor('black').text('PorchLight').fillColor('white').text('.').fillColor('white').text('');
-    //   doc.image(row.LightPanelLobbyLight, {width: 300}).fillColor('white').text('.').fillColor('black').text('LightPanelLobbyLight').fillColor('white').text('.').fillColor('white').text('');
-    //   doc.addPage();
-    //   doc.image(row.iATMBox, {width: 300}).fillColor('white').text('.').fillColor('black').text('iATMBox').fillColor('white').text('.').fillColor('white').text('');
-    // });  
-
     doc.end(); // Finish the PDF document
   });
 }
