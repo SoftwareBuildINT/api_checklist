@@ -47,12 +47,12 @@ connection.getConnection((err) => {
 
 // Routes
 app.post('/login', (req, res) => {
-  const { contact_num, password } = req.body;
+  const { username, password } = req.body;
 
   // Check if the user exists and the password is correct
   connection.query(
-    'SELECT * FROM user_login WHERE contact_num = ? AND password = ?',
-    [contact_num, password],
+    'SELECT * FROM user_login WHERE username = ? AND password = ?',
+    [username, password],
     (err, results) => {
       if (err) {
         console.log(err);
@@ -61,7 +61,7 @@ app.post('/login', (req, res) => {
       }
 
       if (results.length === 0) {
-        res.status(401).json({ error: 'Invalid contact number or password' });
+        res.status(401).json({ error: 'Invalid username or password' });
         return;
       }
 
@@ -79,14 +79,56 @@ app.post('/login', (req, res) => {
   );
 });
 
+function sendOTP(email) {
+  return new Promise((resolve, reject) => {
+    const otp = randomstring.generate({ length: 6, charset: 'numeric' });
+    const otpCreatedAt = new Date();
+    const expiration_time = new Date(
+      otpCreatedAt.setSeconds(otpCreatedAt.getSeconds() + 120)
+    );
+
+    // Save the OTP in the database
+    connection.query(
+      'UPDATE user_login SET otp = ?, expiration_time = ? WHERE email = ?',
+      [otp, expiration_time, email],
+      (updateErr) => {
+        if (updateErr) {
+          reject(updateErr);
+          return;
+        }
+
+        // Send the OTP via email
+        const params = {
+          Destination: {
+            ToAddresses: [email],
+          },
+          Message: {
+            Body: { Html: { Charset: "UTF-8", Data: `Your OTP for login is: ${otp}` } },
+            Subject: { Charset: 'UTF-8', Data: 'Your OTP for login' },
+          },
+          Source: 'trainee.software@buildint.co', // This should be a verified SES sender email address
+        };
+
+        ses.sendEmail(params, (emailErr, data) => {
+          if (emailErr) {
+            reject(emailErr);
+            console.log(emailErr)
+          } else {
+            resolve();
+          }
+        });
+      }
+    );
+  });
+}
+
 // Step 2: OTP Verification and Token Generation
 app.post('/verify', (req, res) => {
-  const { contact_num, otp } = req.body;
-
+  const { username, otp } = req.body;
   // Check if the provided OTP matches the one in the database
   connection.query(
-    'SELECT * FROM user_login WHERE contact_num = ? AND otp = ?',
-    [contact_num, otp],
+    'SELECT * FROM user_login WHERE username = ? AND otp = ?',
+    [username, otp],
     (err, results) => {
       if (err) {
         console.error('Error checking OTP:', err);
@@ -114,8 +156,8 @@ app.post('/verify', (req, res) => {
 
         // Update the database with the JWT token
         connection.query(
-          'UPDATE user_login SET jwt_token = ? WHERE contact_num = ?',
-          [token, contact_num],
+          'UPDATE user_login SET jwt_token = ? WHERE username = ?',
+          [token, username],
           (updateErr) => {
             if (updateErr) {
               console.error(
