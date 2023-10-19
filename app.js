@@ -49,37 +49,38 @@ connection.getConnection((err) => {
 
   // route
   app.post('/login', (req, res) => {
-    const { contact_num, password } = req.body;
+  const { contact_num } = req.body;
 
-    // Check if the user exists and the password is correct
-    connection.query(
-      'SELECT * FROM user_login WHERE contact_num = ? AND password = ?',
-      [contact_num, password],
-      (err, results) => {
-        if (err) {
-          console.log(err);
-          res.status(500).json({ error: 'Internal server error' });
-          return;
-        }
-
-        if (results.length === 0) {
-          res.status(401).json({ error: 'Invalid contact number or password' });
-          return;
-        }
-
-        // User is authenticated; proceed to step 2 (OTP generation)
-        const user = results[0];
-        sendOTP(user.email)
-          .then(() => {
-            res.status(200).json({ message: 'OTP sent to your email for verification' });
-          })
-          .catch((error) => {
-            console.error(error);
-            res.status(500).json({ error: 'Internal server error' });
-          });
+  // Check if the user exists based on contact_num
+  connection.query(
+    'SELECT * FROM user_login WHERE contact_num = ?',
+    [contact_num],
+    (err, results) => {
+      if (err) {
+        console.log(err);
+        res.status(500).json({ error: 'Internal server error' });
+        return;
       }
-    );
-  });
+
+      if (results.length === 0) {
+        res.status(401).json({ error: 'Invalid contact number' });
+        return;
+      }
+
+      // User with the provided contact_num exists; proceed to step 2 (OTP generation)
+      const user = results[0];
+      sendOTP(user.email)
+        .then(() => {
+          res.status(200).json({ message: 'OTP sent to your email for verification' });
+        })
+        .catch((error) => {
+          console.error(error);
+          res.status(500).json({ error: 'Internal server error' });
+        });
+    }
+  );
+});
+
 
   // Step 2: OTP Verification and Token Generation
   app.post('/verify', (req, res) => {
