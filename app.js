@@ -45,10 +45,7 @@ connection.getConnection((err) => {
 
 });
 
-// Routes
-
-  // route
-  app.post('/login', (req, res) => {
+app.post('/login', (req, res) => {
   const { contact_num } = req.body;
 
   // Check if the user exists based on contact_num
@@ -63,7 +60,7 @@ connection.getConnection((err) => {
       }
 
       if (results.length === 0) {
-        res.status(401).json({ error: 'Invalid contact number' });
+        res.status(200).json({ error: 'Invalid contact number' });
         return;
       }
 
@@ -81,65 +78,140 @@ connection.getConnection((err) => {
   );
 });
 
+// Routes
+// app.post('/login', (req, res) => {
+//   const { username, password } = req.body;
 
-  // Step 2: OTP Verification and Token Generation
-  app.post('/verify', (req, res) => {
-    const { contact_num, otp } = req.body;
+//   // Check if the user exists and the password is correct
+//   connection.query(
+//     'SELECT * FROM user_login WHERE username = ? AND password = ?',
+//     [username, password],
+//     (err, results) => {
+//       if (err) {
+//         console.log(err);
+//         res.status(500).json({ error: 'Internal server error' });
+//         return;
+//       }
 
-    // Check if the provided OTP matches the one in the database
+//       if (results.length === 0) {
+//         res.status(401).json({ error: 'Invalid username or password' });
+//         return;
+//       }
+
+//       // User is authenticated; proceed to step 2 (OTP generation)
+//       const user = results[0];
+//       sendOTP(user.email)
+//         .then(() => {
+//           res.status(200).json({ message: 'OTP sent to your email for verification' });
+//         })
+//         .catch((error) => {
+//           console.error(error);
+//           res.status(500).json({ error: 'Internal server error' });
+//         });
+//     }
+//   );
+// });
+
+function sendOTP(email) {
+  return new Promise((resolve, reject) => {
+    const otp = randomstring.generate({ length: 6, charset: 'numeric' });
+    const otpCreatedAt = new Date();
+    const expiration_time = new Date(
+      otpCreatedAt.setSeconds(otpCreatedAt.getSeconds() + 120)
+    );
+
+    // Save the OTP in the database
     connection.query(
-      'SELECT * FROM user_login WHERE contact_num = ? AND otp = ?',
-      [contact_num, otp],
-      (err, results) => {
-        if (err) {
-          console.error('Error checking OTP:', err);
-          res.status(500).json({ error: 'Internal Server Error' });
+      'UPDATE user_login SET otp = ?, expiration_time = ? WHERE email = ?',
+      [otp, expiration_time, email],
+      (updateErr) => {
+        if (updateErr) {
+          reject(updateErr);
           return;
         }
 
-        if (results.length === 0) {
-          res.status(200).json({ error: 'Invalid OTP' });
-          return;
-        }
+        // Send the OTP via email
+        const params = {
+          Destination: {
+            ToAddresses: [email],
+          },
+          Message: {
+            Body: { Html: { Charset: "UTF-8", Data: `Your OTP for login is: ${otp}` } },
+            Subject: { Charset: 'UTF-8', Data: 'Your OTP for login' },
+          },
+          Source: 'trainee.software@buildint.co', // This should be a verified SES sender email address
+        };
 
-        const currentTime = new Date(); // get current Time
-        const otpExpiretime = new Date(results[0].expiration_time);
-        if (currentTime < otpExpiretime) {
-          // OTP is valid; generate a JWT token
-          const user = results[0];
-          const token = jwt.sign(
-            { id: user.id, email: user.email, role_id: user.role_id },
-            'secretkey',
-            {
-              expiresIn: '1h', // Token expires in 1 hour
-            }
-          );
-
-          // Update the database with the JWT token
-          connection.query(
-            'UPDATE user_login SET jwt_token = ? WHERE contact_num = ?',
-            [token, contact_num],
-            (updateErr) => {
-              if (updateErr) {
-                console.error(
-                  'Error updating JWT token in the database:',
-                  updateErr
-                );
-                res.status(500).json({
-                  error: 'Failed to update JWT token in the database',
-                });
-                return;
-              }
-
-              res.status(200).json({ token });
-            }
-          );
-        } else {
-          res.status(200).json({ error: 'OTP has expired' });
-        }
+        ses.sendEmail(params, (emailErr, data) => {
+          if (emailErr) {
+            reject(emailErr);
+            console.log(emailErr)
+          } else {
+            resolve();
+          }
+        });
       }
     );
-  });//Routes
+  });
+}
+
+// Step 2: OTP Verification and Token Generation
+app.post('/verify', (req, res) => {
+  const { contact_num, otp } = req.body;
+  // Check if the provided OTP matches the one in the database
+  connection.query(
+    'SELECT * FROM user_login WHERE contact_num = ? AND otp = ?',
+    [contact_num, otp],
+    (err, results) => {
+      if (err) {
+        console.error('Error checking OTP:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+        return;
+      }
+
+      if (results.length === 0) {
+        res.status(200).json({ error: 'Invalid OTP' });
+        return;
+      }
+
+      const currentTime = new Date(); // get current Time
+      const otpExpiretime = new Date(results[0].expiration_time);
+      if (currentTime < otpExpiretime) {
+        // OTP is valid; generate a JWT token
+        const user = results[0];
+        const token = jwt.sign(
+          { id: user.id, email: user.email, role_id: user.role_id },
+          'secretkey',
+          {
+            expiresIn: '1h', // Token expires in 1 hour
+          }
+        );
+
+        // Update the database with the JWT token
+        connection.query(
+          'UPDATE user_login SET jwt_token = ? WHERE contact_num = ?',
+          [token, contact_num],
+          (updateErr) => {
+            if (updateErr) {
+              console.error(
+                'Error updating JWT token in the database:',
+                updateErr
+              );
+              res.status(500).json({
+                error: 'Failed to update JWT token in the database',
+              });
+              return;
+            }
+
+            res.status(200).json({ token });
+          }
+        );
+      } else {
+        res.status(200).json({ error: 'OTP has expired' });
+      }
+    }
+  );
+});
 //Routes
 app.post('/assets', (req, res) => {
   const {
@@ -1034,4 +1106,3 @@ const port = process.env.PORT || 5000;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
-        
