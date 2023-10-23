@@ -1,6 +1,7 @@
 const express = require('express');
 const mysql = require('mysql2');
 const fs = require('fs');
+const cors = require('cors');
 const PDFDocument = require('pdfkit');
 const bodyParser = require('body-parser');
 const app = express();
