@@ -4,6 +4,7 @@ const fs = require('fs');
 const PDFDocument = require('pdfkit');
 const bodyParser = require('body-parser');
 const app = express();
+app.use(cors());
 const multer = require('multer');
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
