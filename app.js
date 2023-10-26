@@ -182,7 +182,7 @@ app.post('/verify', (req, res) => {
         // OTP is valid; generate a JWT token
         const user = results[0];
         const token = jwt.sign(
-          { id: user.id, email: user.email, role_id: user.role_id },
+          { id: user.id, email: user.email, role: user.role },
           'secretkey',
           {
             expiresIn: '1h', // Token expires in 1 hour
@@ -205,7 +205,7 @@ app.post('/verify', (req, res) => {
               return;
             }
 
-            res.status(200).json({ token });
+            res.status(200).json({ token ,role: results[0].role});
           }
         );
       } else {
