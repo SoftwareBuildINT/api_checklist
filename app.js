@@ -214,6 +214,79 @@ app.post('/verify', (req, res) => {
     }
   );
 });
+// routes
+app.post('/master', (req, res) => {
+  const {
+    after_inst_images,
+    atm_asset_report,
+    ba_inst_images,
+    project_engg,
+    atm_id
+  } = req.body;
+
+  // Use Moment.js to format the current date and time
+  const utcDate= new Date()
+  const date_time = moment(utcDate).format('YYYY-MM-DD HH:mm:ss');
+
+  // Insert form data into the MySQL database
+  const sql = `INSERT INTO master (
+    after_inst_images,
+    atm_asset_report,
+    ba_inst_images,
+    project_engg,
+    atm_id,
+    date_time
+  ) VALUES (?, ?, ?, ?, ?, ?)`;
+
+  const values = [
+    after_inst_images,
+    atm_asset_report,
+    ba_inst_images,
+    project_engg,
+    atm_id,
+    date_time,
+  ];
+
+  connection.query(sql, values, (err, results) => {
+    if (err) {
+      console.error('Error inserting data into MySQL:', err);
+      return res.status(500).json({ message: 'Error inserting data into the database.' });
+    }
+
+    return res.json({ message: 'Item added successfully' });
+  });
+});
+//Routes
+app.post('/masterpost', (req, res) => {
+  const { atm_id } = req.body; // Assuming you send JSON data in the request body with atm_id
+
+  const queryAll = `SELECT * FROM master ORDER BY m_id DESC`;
+  const queryByAtm = `SELECT * FROM master WHERE atm_id = ? ORDER BY m_id DESC`;
+
+  if (atm_id != null) {
+    // If atm_id is provided, execute queryByAtm
+    connection.query(queryByAtm, [atm_id], (err, atmResults) => {
+      if (err) {
+        console.error('Error executing MySQL query:', err);
+        res.status(500).json({ error: 'Internal server error' });
+        return;
+      }
+
+      res.json({ atmData: atmResults });
+    });
+  } else {
+    // If atm_id is not provided, execute queryAll
+    connection.query(queryAll, (err, allResults) => {
+      if (err) {
+        console.error('Error executing MySQL query:', err);
+        res.status(500).json({ error: 'Internal server error' });
+        return;
+      }
+
+      res.json({ allData: allResults });
+    });
+  }
+});
 //Routes
 app.post('/assets', (req, res) => {
   const {
