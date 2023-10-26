@@ -141,7 +141,7 @@ function sendOTP(email) {
             Body: { Html: { Charset: "UTF-8", Data: `Your OTP for login is: ${otp}` } },
             Subject: { Charset: 'UTF-8', Data: 'Your OTP for login' },
           },
-          Source: 'trainee.software@buildint.co', // This should be a verified SES sender email address
+          Source: 'alert@buildint.co', // This should be a verified SES sender email address
         };
 
         ses.sendEmail(params, (emailErr, data) => {
