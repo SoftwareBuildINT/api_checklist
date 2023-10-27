@@ -221,41 +221,84 @@ app.post('/master', (req, res) => {
     atm_asset_report,
     ba_inst_images,
     project_engg,
-    atm_id
+    atm_id,
+    m_id
   } = req.body;
 
   // Use Moment.js to format the current date and time
-  const utcDate= new Date()
+  const utcDate = new Date()
   const date_time = moment(utcDate).format('YYYY-MM-DD HH:mm:ss');
 
-  // Insert form data into the MySQL database
-  const sql = `INSERT INTO master (
-    after_inst_images,
-    atm_asset_report,
-    ba_inst_images,
-    project_engg,
-    atm_id,
-    date_time
-  ) VALUES (?, ?, ?, ?, ?, ?)`;
+  // Check if the record already exists in the database based on atm_id
+  const selectSql = 'SELECT m_id FROM master WHERE m_id = ?';
+  const selectValues = [m_id];
 
-  const values = [
-    after_inst_images,
-    atm_asset_report,
-    ba_inst_images,
-    project_engg,
-    atm_id,
-    date_time,
-  ];
-
-  connection.query(sql, values, (err, results) => {
-    if (err) {
-      console.error('Error inserting data into MySQL:', err);
-      return res.status(500).json({ message: 'Error inserting data into the database.' });
+  connection.query(selectSql, selectValues, (selectErr, selectResults) => {
+    if (selectErr) {
+      console.error('Error checking if the record exists in MySQL:', selectErr);
+      return res.status(500).json({ message: 'Error checking the database.' });
     }
 
-    return res.json({ message: 'Item added successfully' });
+    if (selectResults.length === 0) {
+      // If no record with the given atm_id exists, insert a new record
+      const insertSql = `INSERT INTO master (
+        after_inst_images,
+        atm_asset_report,
+        ba_inst_images,
+        project_engg,
+        atm_id,
+        date_time
+      ) VALUES (?, ?, ?, ?, ?, ?)`;
+
+      const insertValues = [
+        after_inst_images,
+        atm_asset_report,
+        ba_inst_images,
+        project_engg,
+        atm_id,
+        date_time,
+      ];
+
+      connection.query(insertSql, insertValues, (insertErr, insertResults) => {
+        if (insertErr) {
+          console.error('Error inserting data into MySQL:', insertErr);
+          return res.status(500).json({ message: 'Error inserting data into the database.' });
+        }
+
+        return res.json({ message: 'Item added successfully', insertedId: insertResults.insertId });
+      });
+    } else {
+      // If a record with the given atm_id exists, update the existing record
+      const updateSql = `UPDATE master SET
+        after_inst_images = ?,
+        atm_asset_report = ?,
+        ba_inst_images = ?,
+        project_engg = ?,
+        date_time = ?,
+        atm_id = ?
+      WHERE m_id = ${m_id}`;
+
+      const updateValues = [
+        after_inst_images,
+        atm_asset_report,
+        ba_inst_images,
+        project_engg,
+        date_time,
+        atm_id,
+      ];
+
+      connection.query(updateSql, updateValues, (updateErr, updateResults) => {
+        if (updateErr) {
+          console.error('Error updating data in MySQL:', updateErr);
+          return res.status(500).json({ message: 'Error updating data in the database.' });
+        }
+
+        return res.json({ message: 'Item updated successfully' });
+      });
+    }
   });
 });
+
 //Routes
 app.post('/masterpost', (req, res) => {
   const { atm_id } = req.body; // Assuming you send JSON data in the request body with atm_id
