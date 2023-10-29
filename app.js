@@ -182,10 +182,10 @@ app.post('/verify', (req, res) => {
         // OTP is valid; generate a JWT token
         const user = results[0];
         const token = jwt.sign(
-          { id: user.id, email: user.email, role: user.role },
+          { contact_num: user.contact_num, role: user.role },
           'secretkey',
           {
-            expiresIn: '1h', // Token expires in 1 hour
+            expiresIn: '6h', // Token expires in 1 hour
           }
         );
 
@@ -205,7 +205,7 @@ app.post('/verify', (req, res) => {
               return;
             }
 
-            res.status(200).json({ token ,role: results[0].role});
+            res.status(200).json({ token, role: results[0].role });
           }
         );
       } else {
@@ -214,6 +214,39 @@ app.post('/verify', (req, res) => {
     }
   );
 });
+
+function authenticateToken(req, res, next) {
+  const secretKey = 'secretkey';
+  // Get the token from the request headers
+  const token = req.headers['authorization'];
+
+  if (!token) {
+      // Token is missing, return a 401 Unauthorized response
+      return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  // Verify the token
+  console.log(token)
+  jwt.verify(token, 'secretkey', (err, decoded) => {
+    console.log("Test")
+    if (err) {
+          // Token is not valid, return a 403 Forbidden response
+          return res.status(403).json({ message: 'Forbidden', 'error':err });
+      }
+      console.log(decoded)
+      // Token is valid, you can access user information in `decoded`
+      // User information: decoded.id, decoded.email, decoded.role
+      req.user = decoded;
+      next(); 
+  });
+}
+
+// Protected route that requires authentication
+app.get('/tokenVerify', authenticateToken, (req, res) => {
+  // You can access user information from `req.user`
+  res.json({ message: 'Success' , 'Role': req.user.role });
+});
+
 // routes
 app.post('/master', (req, res) => {
   const {
@@ -488,7 +521,7 @@ app.get('/enggdata', (req, res) => {
   connection.query(query, (err, results) => {
     if (err) {
       console.error('Database query error: ' + err);
-      res.status(500).json({ error: 'An error occurred while fetching data',insertId: results["insertId"] });
+      res.status(500).json({ error: 'An error occurred while fetching data', insertId: results["insertId"] });
     } else {
       res.json(results);
     }
@@ -575,7 +608,7 @@ app.get('/enggdataproject', (req, res) => {
   connection.query(query, (err, results) => {
     if (err) {
       console.error('Database query error: ' + err);
-      res.status(500).json({ error: 'An error occurred while fetching data',insertId: results["insertId"] });
+      res.status(500).json({ error: 'An error occurred while fetching data', insertId: results["insertId"] });
     } else {
       res.json(results);
     }
@@ -816,12 +849,12 @@ function generatePDFprojectengg(data, project) {
       doc.font('Times-Bold').fontSize(10).text('Authorised Signature: ', 55, 775, { width: 504, height: 40, align: 'left' })
       doc.image('./authorised_signature.png', 55, 787, { width: 200, height: 80, align: 'center', valign: 'center' });
     });
-    data.engg_sign.forEach((row)=>{
+    data.engg_sign.forEach((row) => {
       doc.rect(340, 770, 224, 150).stroke();
       doc.font('Times-Bold').fontSize(10).text('Engineer Name: ' + row.engg_name, 345, 775, { width: 504, height: 40, align: 'left' })
       doc.font('Times-Bold').fontSize(10).text('Engineer Number: ' + row.contact_no, 345, 787, { width: 504, height: 40, align: 'left' })
       doc.font('Times-Bold').fontSize(10).text('Signature: ', 345, 799, { width: 504, height: 40, align: 'left' })
-      doc.image(row.sign,391,848,{width:100 , height:40})
+      doc.image(row.sign, 391, 848, { width: 100, height: 40 })
     });
     doc.end(); // Finish the PDF document
   });
@@ -831,7 +864,7 @@ function generatePDFprojectengg(data, project) {
 app.get('/generatepdfprojectengg', async (req, res) => {
   try {
     // Replace 123 with the specific ATM ID you want to query
-    const { project_engg,engg_sign} = req.query;
+    const { project_engg, engg_sign } = req.query;
 
     const query3 = 'SELECT * FROM project_engg WHERE c_id = ?';
     const query5 = 'SELECT * FROM engg_sign WHERE engg_name = ?';
@@ -1099,38 +1132,38 @@ function generatePDF(data, project) {
       doc.font('Times-Bold').fontSize(12).text('Authorized Signature: ', 13, 791, { width: 674, height: 141, align: 'left' })
       doc.image('./authorised_signature.png', 55, 811, { width: 100, height: 40, align: 'center', valign: 'center' });
     });
-    data.engg_sign.forEach((row)=>{
+    data.engg_sign.forEach((row) => {
       doc.font('Times-Bold').fontSize(12).text('Engineer Name: ' + row.engg_name, 391, 791, { width: 674, height: 141, align: 'left' })
       doc.font('Times-Bold').fontSize(12).text('Engineer No.: ' + row.contact_no, 391, 811, { width: 674, height: 141, align: 'left' })
       doc.font('Times-Bold').fontSize(12).text('Signature:', 391, 831, { width: 674, height: 141, align: 'left' })
-      doc.image(row.sign,391,848,{width:100 , height:40})
+      doc.image(row.sign, 391, 848, { width: 100, height: 40 })
     })
 
     doc.addPage();
     doc.fontSize(18).text('BEFORE INSTALLATION IMAGES', { align: 'center' });
 
     data.ba_inst_images.forEach((row) => {
-      doc.image(row.DoorPhoto_VisibleSensor, {width: 300}).fillColor('white').text('.').fillColor('black').text('DoorPhoto_VisibleSensor').fillColor('white').text('.').fillColor('white').text('');
-      doc.image(row.ATMOutdoorPhoto, {width: 300}).fillColor('white').text('.').fillColor('black').text('ATMOutdoorPhoto').fillColor('white').text('.').fillColor('white').text('');
-      doc.image(row.Signage, {width: 300}).fillColor('white').text('.').fillColor('black').text('Signage').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.DoorPhoto_VisibleSensor, { width: 300 }).fillColor('white').text('.').fillColor('black').text('DoorPhoto_VisibleSensor').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.ATMOutdoorPhoto, { width: 300 }).fillColor('white').text('.').fillColor('black').text('ATMOutdoorPhoto').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.Signage, { width: 300 }).fillColor('white').text('.').fillColor('black').text('Signage').fillColor('white').text('.').fillColor('white').text('');
       doc.addPage();
-      doc.image(row.AC1, {width: 300}).fillColor('white').text('.').fillColor('black').text('AC1').fillColor('white').text('.').fillColor('white').text('');
-      doc.image(row.AC2, {width: 300}).fillColor('white').text('.').fillColor('black').text('AC2').fillColor('white').text('.').fillColor('white').text('');
-      doc.image(row.ACCompressor, {width: 300}).fillColor('white').text('.').fillColor('black').text('ACCompressor').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.AC1, { width: 300 }).fillColor('white').text('.').fillColor('black').text('AC1').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.AC2, { width: 300 }).fillColor('white').text('.').fillColor('black').text('AC2').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.ACCompressor, { width: 300 }).fillColor('white').text('.').fillColor('black').text('ACCompressor').fillColor('white').text('.').fillColor('white').text('');
       doc.addPage();
-      doc.image(row.ATMMachine, {width: 300}).fillColor('white').text('.').fillColor('black').text('ATMMachine').fillColor('white').text('.').fillColor('white').text('');
-      doc.image(row.TempreatureSensorMounting, {width: 300}).fillColor('white').text('.').fillColor('black').text('TempreatureSensorMounting').fillColor('white').text('.').fillColor('white').text('');
-      doc.image(row.AtmPanelBackroom, {width: 300}).fillColor('white').text('.').fillColor('black').text('AtmPanelBackroom').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.ATMMachine, { width: 300 }).fillColor('white').text('.').fillColor('black').text('ATMMachine').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.TempreatureSensorMounting, { width: 300 }).fillColor('white').text('.').fillColor('black').text('TempreatureSensorMounting').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.AtmPanelBackroom, { width: 300 }).fillColor('white').text('.').fillColor('black').text('AtmPanelBackroom').fillColor('white').text('.').fillColor('white').text('');
       doc.addPage();
-      doc.image(row.SurviellancePanel, {width: 300}).fillColor('white').text('.').fillColor('black').text('SurviellancePanel').fillColor('white').text('.').fillColor('white').text('');
-      doc.image(row.UPS, {width: 300}).fillColor('white').text('.').fillColor('black').text('UPS').fillColor('white').text('.').fillColor('white').text('');
-      doc.image(row.Batteries, {width: 300}).fillColor('white').text('.').fillColor('black').text('Batteries').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.SurviellancePanel, { width: 300 }).fillColor('white').text('.').fillColor('black').text('SurviellancePanel').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.UPS, { width: 300 }).fillColor('white').text('.').fillColor('black').text('UPS').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.Batteries, { width: 300 }).fillColor('white').text('.').fillColor('black').text('Batteries').fillColor('white').text('.').fillColor('white').text('');
       doc.addPage();
-      doc.image(row.VsatRouter, {width: 300}).fillColor('white').text('.').fillColor('black').text('VsatRouter').fillColor('white').text('.').fillColor('white').text('');
-      doc.image(row.PorchLight, {width: 300}).fillColor('white').text('.').fillColor('black').text('PorchLight').fillColor('white').text('.').fillColor('white').text('');
-      doc.image(row.LightPanelLobbyLight, {width: 300}).fillColor('white').text('.').fillColor('black').text('LightPanelLobbyLight').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.VsatRouter, { width: 300 }).fillColor('white').text('.').fillColor('black').text('VsatRouter').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.PorchLight, { width: 300 }).fillColor('white').text('.').fillColor('black').text('PorchLight').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.LightPanelLobbyLight, { width: 300 }).fillColor('white').text('.').fillColor('black').text('LightPanelLobbyLight').fillColor('white').text('.').fillColor('white').text('');
       doc.addPage();
-      doc.image(row.iATMBoxMountingPlace, {width: 300}).fillColor('white').text('.').fillColor('black').text('iATMBoxMountingPlace').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.iATMBoxMountingPlace, { width: 300 }).fillColor('white').text('.').fillColor('black').text('iATMBoxMountingPlace').fillColor('white').text('.').fillColor('white').text('');
 
     });
 
@@ -1140,28 +1173,28 @@ function generatePDF(data, project) {
 
       // doc.image(row.iATMBoxMountingPlace, {width:300}).text('Proportional to width', 0, 0);
       // doc.image(row.iATMBoxMountingPlace, {width:300}).text('Proportional to width', 0, 0);
-      doc.image(row.DoorPhoto_VisibleSensor, {width: 300}).fillColor('white').text('.').fillColor('black').text('DoorPhoto_VisibleSensor').fillColor('white').text('.').fillColor('white').text('');
-      doc.image(row.ATMOutdoorPhoto, {width: 300}).fillColor('white').text('.').fillColor('black').text('ATMOutdoorPhoto').fillColor('white').text('.').fillColor('white').text('');
-      doc.image(row.Signage, {width: 300}).fillColor('white').text('.').fillColor('black').text('Signage').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.DoorPhoto_VisibleSensor, { width: 300 }).fillColor('white').text('.').fillColor('black').text('DoorPhoto_VisibleSensor').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.ATMOutdoorPhoto, { width: 300 }).fillColor('white').text('.').fillColor('black').text('ATMOutdoorPhoto').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.Signage, { width: 300 }).fillColor('white').text('.').fillColor('black').text('Signage').fillColor('white').text('.').fillColor('white').text('');
       doc.addPage();
-      doc.image(row.AC1, {width: 300}).fillColor('white').text('.').fillColor('black').text('AC1').fillColor('white').text('.').fillColor('white').text('');
-      doc.image(row.AC2, {width: 300}).fillColor('white').text('.').fillColor('black').text('AC2').fillColor('white').text('.').fillColor('white').text('');
-      doc.image(row.ACCompressor, {width: 300}).fillColor('white').text('.').fillColor('black').text('ACCompressor').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.AC1, { width: 300 }).fillColor('white').text('.').fillColor('black').text('AC1').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.AC2, { width: 300 }).fillColor('white').text('.').fillColor('black').text('AC2').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.ACCompressor, { width: 300 }).fillColor('white').text('.').fillColor('black').text('ACCompressor').fillColor('white').text('.').fillColor('white').text('');
       doc.addPage();
-      doc.image(row.ATMMachine, {width: 300}).fillColor('white').text('.').fillColor('black').text('ATMMachine').fillColor('white').text('.').fillColor('white').text('');
-      doc.image(row.TempreatureSensorMounting, {width: 300}).fillColor('white').text('.').fillColor('black').text('TempreatureSensorMounting').fillColor('white').text('.').fillColor('white').text('');
-      doc.image(row.AtmPanelBackroom, {width: 300}).fillColor('white').text('.').fillColor('black').text('AtmPanelBackroom').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.ATMMachine, { width: 300 }).fillColor('white').text('.').fillColor('black').text('ATMMachine').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.TempreatureSensorMounting, { width: 300 }).fillColor('white').text('.').fillColor('black').text('TempreatureSensorMounting').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.AtmPanelBackroom, { width: 300 }).fillColor('white').text('.').fillColor('black').text('AtmPanelBackroom').fillColor('white').text('.').fillColor('white').text('');
       doc.addPage();
-      doc.image(row.SurviellancePanel, {width: 300}).fillColor('white').text('.').fillColor('black').text('SurviellancePanel').fillColor('white').text('.').fillColor('white').text('');
-      doc.image(row.UPS, {width: 300}).fillColor('white').text('.').fillColor('black').text('UPS').fillColor('white').text('.').fillColor('white').text('');
-      doc.image(row.Batteries, {width: 300}).fillColor('white').text('.').fillColor('black').text('Batteries').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.SurviellancePanel, { width: 300 }).fillColor('white').text('.').fillColor('black').text('SurviellancePanel').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.UPS, { width: 300 }).fillColor('white').text('.').fillColor('black').text('UPS').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.Batteries, { width: 300 }).fillColor('white').text('.').fillColor('black').text('Batteries').fillColor('white').text('.').fillColor('white').text('');
       doc.addPage();
-      doc.image(row.VsatRouter, {width: 300}).fillColor('white').text('.').fillColor('black').text('VsatRouter').fillColor('white').text('.').fillColor('white').text('');
-      doc.image(row.PorchLight, {width: 300}).fillColor('white').text('.').fillColor('black').text('PorchLight').fillColor('white').text('.').fillColor('white').text('');
-      doc.image(row.LightPanelLobbyLight, {width: 300}).fillColor('white').text('.').fillColor('black').text('LightPanelLobbyLight').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.VsatRouter, { width: 300 }).fillColor('white').text('.').fillColor('black').text('VsatRouter').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.PorchLight, { width: 300 }).fillColor('white').text('.').fillColor('black').text('PorchLight').fillColor('white').text('.').fillColor('white').text('');
+      doc.image(row.LightPanelLobbyLight, { width: 300 }).fillColor('white').text('.').fillColor('black').text('LightPanelLobbyLight').fillColor('white').text('.').fillColor('white').text('');
       doc.addPage();
-      doc.image(row.iATMBox, {width: 300}).fillColor('white').text('.').fillColor('black').text('iATMBox').fillColor('white').text('.').fillColor('white').text('');
-    });  
+      doc.image(row.iATMBox, { width: 300 }).fillColor('white').text('.').fillColor('black').text('iATMBox').fillColor('white').text('.').fillColor('white').text('');
+    });
     doc.end(); // Finish the PDF document
   });
 }
@@ -1177,7 +1210,7 @@ app.get('/generatepdfassest', async (req, res) => {
     const query4 = 'SELECT * FROM after_inst_images WHERE c_id = ?';
     const query5 = 'SELECT * FROM engg_sign WHERE engg_name = ?';
 
-    const values = [atm_asset_report, ba_inst_images, after_inst_images,engg_sign];
+    const values = [atm_asset_report, ba_inst_images, after_inst_images, engg_sign];
 
     const results = {};
 
@@ -1194,8 +1227,8 @@ app.get('/generatepdfassest', async (req, res) => {
       });
     }
 
-    const queries = [query1, query2, query4,query5 ];
-    const keys = ['atm_asset_report', 'ba_inst_images', 'after_inst_images','engg_sign'];
+    const queries = [query1, query2, query4, query5];
+    const keys = ['atm_asset_report', 'ba_inst_images', 'after_inst_images', 'engg_sign'];
 
     const promises = [];
 
