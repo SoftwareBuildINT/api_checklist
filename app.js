@@ -514,7 +514,158 @@ app.post('/assets', (req, res) => {
   });
 });
 
+app.post('/AssetsUpdate', (req, res) => {
+  const {
+    atm_id,
+    city_name,
+    date_of_visit,
+    atm_site_address,
+    mse_name,
+    mse_cnct_no,
+    mse_email,
+    ac1_type,
+    ac1_make_model,
+    ac1_qty,
+    ac1_capacity,
+    ac1_communication,
+    ac2_type,
+    ac2_make_model,
+    ac2_qty,
+    ac2_capacity,
+    ac2_communication,
+    ups_make_model,
+    ups_capacity_output,
+    ups_total_no_batt,
+    ups_batt_voltage,
+    elec_sys_sld,
+    elec_sys_tot_no_panels,
+    light_led,
+    light_no_of_lights,
+    signage_status,
+    signage_timing,
+    atm_door_status,
+    door_sensor,
+    atm_count,
+    site_images,
+    timer_signage,
+    timer_ac1,
+    timer_ac2,
+    other_asset_details_desc1,
+    other_asset_details_desc2,
+    details_desc_remarks1,
+    details_desc_remarks2,
+    area_1,
+    area_2,
+    remarks,
+    engg_name,
+    engg_cont_no,
+    c_id
+  } = req.body;
 
+  // Insert form data into the MySQL database
+  const sql = `UPDATE atm_asset_report
+    SET 
+    atm_id = ?,
+    city_name = ?,
+    date_of_visit = ?,
+    atm_site_address = ?,
+    mse_name = ?,
+    mse_cnct_no = ?,
+    mse_email = ?,
+    ac1_type = ?,
+    ac1_make_model = ?,
+    ac1_qty = ?,
+    ac1_capacity = ?,
+    ac1_communication = ?,
+    ac2_type = ?,
+    ac2_make_model = ?,
+    ac2_qty = ?,
+    ac2_capacity = ?,
+    ac2_communication = ?,
+    ups_make_model = ?,
+    ups_capacity_output = ?,
+    ups_total_no_batt = ?,
+    ups_batt_voltage = ?,
+    elec_sys_sld = ?,
+    elec_sys_tot_no_panels = ?,
+    light_led = ?,
+    light_no_of_lights = ?,
+    signage_status = ?,
+    signage_timing = ?,
+    atm_door_status = ?,
+    door_sensor = ?,
+    atm_count = ?,
+    site_images = ?,
+    timer_signage = ?,
+    timer_ac1 = ?,
+    timer_ac2 = ?,
+    other_asset_details_desc1 = ?,
+    other_asset_details_desc2 = ?,
+    details_desc_remarks1 = ?,
+    details_desc_remarks2 = ?,
+    area_1 = ?,
+    area_2 = ?,
+    remarks = ?,
+    engg_name = ?,
+    engg_cont_no = ?
+  WHERE c_id = ?;`;
+
+  const values = [
+    atm_id,
+    city_name,
+    date_of_visit,
+    atm_site_address,
+    mse_name,
+    mse_cnct_no,
+    mse_email,
+    ac1_type,
+    ac1_make_model,
+    ac1_qty,
+    ac1_capacity,
+    ac1_communication,
+    ac2_type,
+    ac2_make_model,
+    ac2_qty,
+    ac2_capacity,
+    ac2_communication,
+    ups_make_model,
+    ups_capacity_output,
+    ups_total_no_batt,
+    ups_batt_voltage,
+    elec_sys_sld,
+    elec_sys_tot_no_panels,
+    light_led,
+    light_no_of_lights,
+    signage_status,
+    signage_timing,
+    atm_door_status,
+    door_sensor,
+    atm_count,
+    site_images,
+    timer_signage,
+    timer_ac1,
+    timer_ac2,
+    other_asset_details_desc1,
+    other_asset_details_desc2,
+    details_desc_remarks1,
+    details_desc_remarks2,
+    area_1,
+    area_2,
+    remarks,
+    engg_name,
+    engg_cont_no,
+    c_id
+  ];
+
+  connection.query(sql, values, (err, results) => {
+    if (err) {
+      console.error('Error inserting data into MySQL:', err);
+      return res.status(500).json({ message: 'Error inserting data into the database.' });
+    }
+
+    return res.json({ message: 'Item added successfully', insertId: results.insertId });
+  });
+});
 // Create an API endpoint to fetch data from the database
 app.get('/enggdata', (req, res) => {
   const query = 'SELECT e_id,engg_name FROM engg_sign ';
@@ -601,7 +752,78 @@ app.post('/project', (req, res) => {
   });
 });
 
+// Routes 
+app.post('/ProjectUpdate', (req, res) => {
+  const {
+    location,
+    atm_id,
+    mse_name,
+    site_per_name,
+    site_per_cont_no,
+    date_of_visit,
+    visit_in_time,
+    ac1,
+    ac1_remark,
+    ac2,
+    ac2_remark,
+    lobby,
+    lobby_remark,
+    signage,
+    signage_remark,
+    temp_hum,
+    temp_hum_remark,
+    door_sensor,
+    door_sensor_remark,
+    earthing,
+    earthing_remark,
+    ups_charg_op,
+    ups_charg_op_remark,
+    iatm_box,
+    iatm_remark,
+    router,
+    router_remark,
+    battery,
+    battery_remark,
+    atm_machine,
+    atm_machine_remark,
+    visit_out_time,
+    issue_resolved,
+    remark,
+    engg_name,
+    engg_cont_no,
+    c_id
+  } = req.body;
 
+  // Insert form data into the MySQL database
+  const sql = `UPDATE project_engg
+    SET
+      location=?, atm_id=?, mse_name=?, site_per_name=?, site_per_cont_no=?,
+      date_of_visit=?, visit_in_time=?, ac1=?, ac1_remark=?, ac2=?, ac2_remark=?,
+      lobby=?, lobby_remark=?, signage=?, signage_remark=?, temp_hum=?, temp_hum_remark=?,
+      door_sensor=?, door_sensor_remark=?, earthing=?, earthing_remark=?, ups_charg_op=?,
+      ups_charg_op_remark=?, iatm_box=?, iatm_remark=?, router=?, router_remark=?,
+      battery=?, battery_remark=?, atm_machine=?, atm_machine_remark=?,
+      visit_out_time=?, issue_resolved=?, remark=?, engg_name=?, engg_cont_no=?
+      WHERE c_id = ?;`;
+  const values = [
+    location, atm_id, mse_name, site_per_name, site_per_cont_no,
+    date_of_visit, visit_in_time, ac1, ac1_remark, ac2, ac2_remark,
+    lobby, lobby_remark, signage, signage_remark, temp_hum, temp_hum_remark,
+    door_sensor, door_sensor_remark, earthing, earthing_remark, ups_charg_op,
+    ups_charg_op_remark, iatm_box, iatm_remark, router, router_remark,
+    battery, battery_remark, atm_machine, atm_machine_remark,
+    visit_out_time, issue_resolved, remark, engg_name, engg_cont_no, c_id
+  ];
+
+  connection.query(sql, values, (err, results) => {
+    if (err) {
+      console.error('Error inserting data into MySQL:', err);
+      return res.status(500).json({ message: 'Error inserting data into the database.' });
+    }
+
+    return res.json({ message: 'Item added successfully', insertId: results["insertId"] });
+  });
+});
 // Create an API endpoint to fetch data from the database
 app.get('/enggdataproject', (req, res) => {
   const query = 'SELECT e_id,engg_name,contact_no FROM engg_sign ';
@@ -654,6 +876,47 @@ app.post('/baimage', upload.fields([{ name: 'ATMOutdoorPhoto', maxCount: 1 }, { 
   })
 });
 
+// Routes
+app.post('/beforeupdt', upload.fields([{ name: 'ATMOutdoorPhoto', maxCount: 1 }, { name: 'ACCompressor', maxCount: 1 }, { name: 'DoorPhoto_VisibleSensor', maxCount: 1 }, { name: 'ATMMachine', maxCount: 1 }, { name: 'TempreatureSensorMounting', maxCount: 1 }, { name: 'AtmPanelBackroom', maxCount: 1 }, { name: 'SurviellancePanel', maxCount: 1 }, { name: 'UPS', maxCount: 1 }, { name: 'Batteries', maxCount: 1 }, { name: 'VsatRouter', maxCount: 1 }, { name: 'PorchLight', maxCount: 1 }, { name: 'Signage', maxCount: 1 }, { name: 'iATMBoxMountingPlace', maxCount: 1 }, { name: 'LightPanelLobbyLight', maxCount: 1 }, { name: 'AC1', maxCount: 1 }, { name: 'AC2', maxCount: 1 }]), (req, res) => {
+
+  const AC1 = req.files['AC1'][0].buffer;
+  const AC2 = req.files['AC2'][0].buffer;
+  const ATMOutdoorPhoto = req.files['ATMOutdoorPhoto'][0].buffer;
+  const Signage = req.files['Signage'][0].buffer;
+  const ACCompressor = req.files['ACCompressor'][0].buffer;
+  const DoorPhoto_VisibleSensor = req.files['DoorPhoto_VisibleSensor'][0].buffer;
+  const ATMMachine = req.files['ATMMachine'][0].buffer;
+  const TempreatureSensorMounting = req.files['TempreatureSensorMounting'][0].buffer;
+  const AtmPanelBackroom = req.files['AtmPanelBackroom'][0].buffer;
+  const SurviellancePanel = req.files['SurviellancePanel'][0].buffer;
+  const UPS = req.files['UPS'][0].buffer;
+  const Batteries = req.files['Batteries'][0].buffer;
+  const VsatRouter = req.files['VsatRouter'][0].buffer;
+  const PorchLight = req.files['PorchLight'][0].buffer;
+  const LightPanelLobbyLight = req.files['LightPanelLobbyLight'][0].buffer;
+  const iATMBoxMountingPlace = req.files['iATMBoxMountingPlace'][0].buffer;
+  const atmaddress = req.body.atmaddress
+  const atm_id = req.body.atm_id
+  const c_id = req.body.c_id
+  const sql = `UPDATE ba_inst_images 
+  SET
+  AC1=?, AC2=?, atm_id=?, ATMOutdoorPhoto=?, Signage=?, ACCompressor=?, DoorPhoto_VisibleSensor=?, ATMMachine=?, TempreatureSensorMounting=?,
+  AtmPanelBackroom=?, SurviellancePanel=?, UPS=?, Batteries=?, VsatRouter=?, PorchLight=?, LightPanelLobbyLight=?, iATMBoxMountingPlace=?, atmaddress=?
+  WHERE c_id=?`;
+
+  const values = [AC1, AC2, atm_id, ATMOutdoorPhoto, Signage, ACCompressor, DoorPhoto_VisibleSensor, ATMMachine, TempreatureSensorMounting,
+    AtmPanelBackroom, SurviellancePanel, UPS, Batteries, VsatRouter, PorchLight, LightPanelLobbyLight, iATMBoxMountingPlace, atmaddress, c_id];
+  
+  connection.query(sql, values, (err, results) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).json({ status: 500, message: 'Error inserting data into the database.' });
+    } else {
+      console.log(results);
+      return res.json({ status: 200, message: 'Item added successfully', insertId: results["insertId"] });
+    }
+  })
+});
 
 app.post('/afterimage', upload.fields([{ name: 'iATMBox', maxCount: 1 }, { name: 'ATMOutdoorPhoto', maxCount: 1 }, { name: 'ACCompressor', maxCount: 1 }, { name: 'DoorPhoto_VisibleSensor', maxCount: 1 }, { name: 'ATMMachine', maxCount: 1 }, { name: 'TempreatureSensorMounting', maxCount: 1 }, { name: 'AtmPanelBackroom', maxCount: 1 }, { name: 'SurviellancePanel', maxCount: 1 }, { name: 'UPS', maxCount: 1 }, { name: 'Batteries', maxCount: 1 }, { name: 'VsatRouter', maxCount: 1 }, { name: 'PorchLight', maxCount: 1 }, { name: 'Signage', maxCount: 1 }, { name: 'LightPanelLobbyLight', maxCount: 1 }, { name: 'AC1', maxCount: 1 }, { name: 'AC2', maxCount: 1 }]), (req, res) => {
 
@@ -692,7 +955,54 @@ app.post('/afterimage', upload.fields([{ name: 'iATMBox', maxCount: 1 }, { name:
   })
 });
 
+// Routes
+app.post('/afterupdt', upload.fields([{ name: 'iATMBox', maxCount: 1 }, { name: 'ATMOutdoorPhoto', maxCount: 1 }, { name: 'ACCompressor', maxCount: 1 }, { name: 'DoorPhoto_VisibleSensor', maxCount: 1 }, { name: 'ATMMachine', maxCount: 1 }, { name: 'TempreatureSensorMounting', maxCount: 1 }, { name: 'AtmPanelBackroom', maxCount: 1 }, { name: 'SurviellancePanel', maxCount: 1 }, { name: 'UPS', maxCount: 1 }, { name: 'Batteries', maxCount: 1 }, { name: 'VsatRouter', maxCount: 1 }, { name: 'PorchLight', maxCount: 1 }, { name: 'Signage', maxCount: 1 }, { name: 'LightPanelLobbyLight', maxCount: 1 }, { name: 'AC1', maxCount: 1 }, { name: 'AC2', maxCount: 1 }]), (req, res) => {
 
+  // Extract file buffers
+  const AC1 = req.files['AC1'][0].buffer;
+  const AC2 = req.files['AC2'][0].buffer;
+  const ATMOutdoorPhoto = req.files['ATMOutdoorPhoto'][0].buffer;
+  const Signage = req.files['Signage'][0].buffer;
+  const ACCompressor = req.files['ACCompressor'][0].buffer;
+  const DoorPhoto_VisibleSensor = req.files['DoorPhoto_VisibleSensor'][0].buffer;
+  const ATMMachine = req.files['ATMMachine'][0].buffer;
+  const TempreatureSensorMounting = req.files['TempreatureSensorMounting'][0].buffer;
+  const AtmPanelBackroom = req.files['AtmPanelBackroom'][0].buffer;
+  const SurviellancePanel = req.files['SurviellancePanel'][0].buffer;
+  const UPS = req.files['UPS'][0].buffer;
+  const Batteries = req.files['Batteries'][0].buffer;
+  const VsatRouter = req.files['VsatRouter'][0].buffer;
+  const PorchLight = req.files['PorchLight'][0].buffer;
+  const LightPanelLobbyLight = req.files['LightPanelLobbyLight'][0].buffer;
+  const iATMBox = req.files['iATMBox'][0].buffer;
+
+  // Extract form data
+  const atmaddress = req.body.atmaddress;
+  const atm_id = req.body.atm_id;
+  const c_id = req.body.c_id;
+
+  // Construct the SQL query for updating
+  const sql = `UPDATE after_inst_images
+  SET
+  AC1=?, AC2=?, atm_id=?, ATMOutdoorPhoto=?, Signage=?, ACCompressor=?, DoorPhoto_VisibleSensor=?, ATMMachine=?, TempreatureSensorMounting=?,
+  AtmPanelBackroom=?, SurviellancePanel=?, iATMBox=?, UPS=?, Batteries=?, VsatRouter=?, PorchLight=?, LightPanelLobbyLight=?, atmaddress=?
+  WHERE c_id=?`;
+
+  // Prepare the values array
+  const values = [AC1, AC2, atm_id, ATMOutdoorPhoto, Signage, ACCompressor, DoorPhoto_VisibleSensor, ATMMachine, TempreatureSensorMounting,
+    AtmPanelBackroom, SurviellancePanel, iATMBox, UPS, Batteries, VsatRouter, PorchLight, LightPanelLobbyLight, atmaddress, c_id];
+
+  // Execute the database update query
+  connection.query(sql, values, (err, results) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).json({ status: 500, message: 'Error updating data in the database.' });
+    } else {
+      console.log(results);
+      return res.json({ status: 200, message: 'Item updated successfully', insertId: results["insertId"] });
+    }
+  });
+});
 // app.get('/api/data', (req, res) => {
 //   b_id=''
 //   const query = `
