@@ -215,9 +215,8 @@ app.post('/verify', (req, res) => {
 });
 
 function authenticateToken(req, res, next) {
-  const secretKey = 'secretkey';
   // Get the token from the request headers
-  const token = req.headers['authorization'];
+  const token = req.body['authorization'];
 
   if (!token) {
     // Token is missing, return a 401 Unauthorized response
@@ -226,7 +225,6 @@ function authenticateToken(req, res, next) {
 
   // Verify the token
   jwt.verify(token, 'secretkey', (err, decoded) => {
-    console.log("Test")
     if (err) {
       // Token is not valid, return a 403 Forbidden response
       return res.status(403).json({ message: 'Forbidden', 'error': err });
