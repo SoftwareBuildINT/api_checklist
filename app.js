@@ -225,14 +225,12 @@ function authenticateToken(req, res, next) {
   }
 
   // Verify the token
-  console.log(token)
   jwt.verify(token, 'secretkey', (err, decoded) => {
     console.log("Test")
     if (err) {
       // Token is not valid, return a 403 Forbidden response
       return res.status(403).json({ message: 'Forbidden', 'error': err });
     }
-    console.log(decoded)
     // Token is valid, you can access user information in `decoded`
     // User information: decoded.id, decoded.email, decoded.role
     req.user = decoded;
