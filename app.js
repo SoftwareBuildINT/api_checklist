@@ -240,7 +240,7 @@ function authenticateToken(req, res, next) {
 // Protected route that requires authentication
 app.get('/tokenVerify', authenticateToken, (req, res) => {
   // You can access user information from `req.user`
-  res.json({ message: 'Success', 'Role': req.user });
+  res.json({ message: 'Success', 'user_details': req.user });
 });
 
 // routes
