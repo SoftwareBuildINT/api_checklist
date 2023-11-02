@@ -113,7 +113,6 @@ app.post('/login', (req, res) => {
 //     }
 //   );
 // });
-
 function sendOTP(email) {
   return new Promise((resolve, reject) => {
     const otp = randomstring.generate({ length: 6, charset: 'numeric' });
@@ -221,8 +220,8 @@ function authenticateToken(req, res, next) {
   const token = req.headers['authorization'];
 
   if (!token) {
-      // Token is missing, return a 401 Unauthorized response
-      return res.status(401).json({ message: 'Unauthorized' });
+    // Token is missing, return a 401 Unauthorized response
+    return res.status(401).json({ message: 'Unauthorized' });
   }
 
   // Verify the token
@@ -230,25 +229,25 @@ function authenticateToken(req, res, next) {
   jwt.verify(token, 'secretkey', (err, decoded) => {
     console.log("Test")
     if (err) {
-          // Token is not valid, return a 403 Forbidden response
-          return res.status(403).json({ message: 'Forbidden', 'error':err });
-      }
-      console.log(decoded)
-      // Token is valid, you can access user information in `decoded`
-      // User information: decoded.id, decoded.email, decoded.role
-      req.user = decoded;
-      next(); 
+      // Token is not valid, return a 403 Forbidden response
+      return res.status(403).json({ message: 'Forbidden', 'error': err });
+    }
+    console.log(decoded)
+    // Token is valid, you can access user information in `decoded`
+    // User information: decoded.id, decoded.email, decoded.role
+    req.user = decoded;
+    next();
   });
 }
 
 // Protected route that requires authentication
 app.get('/tokenVerify', authenticateToken, (req, res) => {
   // You can access user information from `req.user`
-  res.json({ message: 'Success' , 'Role': req.user.role });
+  res.json({ message: 'Success', 'Role': req.user.role });
 });
 
 // routes
-app.post('/master', (req, res) => {
+app.post('/master',authenticateToken, (req, res) => {
   const {
     after_inst_images,
     atm_asset_report,
@@ -333,7 +332,7 @@ app.post('/master', (req, res) => {
 });
 
 //Routes
-app.post('/masterpost', (req, res) => {
+app.post('/masterpost',authenticateToken, (req, res) => {
   const { atm_id } = req.body; // Assuming you send JSON data in the request body with atm_id
 
   const queryAll = `SELECT * FROM master ORDER BY m_id DESC`;
@@ -364,7 +363,7 @@ app.post('/masterpost', (req, res) => {
   }
 });
 //Routes
-app.post('/assets', (req, res) => {
+app.post('/assets', authenticateToken,(req, res) => {
   const {
     atm_id,
     city_name,
@@ -514,7 +513,7 @@ app.post('/assets', (req, res) => {
   });
 });
 
-app.post('/AssetsUpdate', (req, res) => {
+app.post('/AssetsUpdate',authenticateToken, (req, res) => {
   const {
     atm_id,
     city_name,
@@ -667,7 +666,7 @@ app.post('/AssetsUpdate', (req, res) => {
   });
 });
 // Create an API endpoint to fetch data from the database
-app.get('/enggdata', (req, res) => {
+app.get('/enggdata',authenticateToken, (req, res) => {
   const query = 'SELECT e_id,engg_name FROM engg_sign ';
   connection.query(query, (err, results) => {
     if (err) {
@@ -681,7 +680,7 @@ app.get('/enggdata', (req, res) => {
 
 
 // Routes
-app.post('/project', (req, res) => {
+app.post('/project',authenticateToken, (req, res) => {
   const {
     location,
     atm_id,
@@ -753,7 +752,7 @@ app.post('/project', (req, res) => {
 });
 
 // Routes 
-app.post('/ProjectUpdate', (req, res) => {
+app.post('/ProjectUpdate',authenticateToken, (req, res) => {
   const {
     location,
     atm_id,
@@ -825,7 +824,7 @@ app.post('/ProjectUpdate', (req, res) => {
   });
 });
 // Create an API endpoint to fetch data from the database
-app.get('/enggdataproject', (req, res) => {
+app.get('/enggdataproject',authenticateToken, (req, res) => {
   const query = 'SELECT e_id,engg_name,contact_no FROM engg_sign ';
   connection.query(query, (err, results) => {
     if (err) {
@@ -839,7 +838,7 @@ app.get('/enggdataproject', (req, res) => {
 
 
 // before Routes
-app.post('/baimage', upload.fields([{ name: 'ATMOutdoorPhoto', maxCount: 1 }, { name: 'ACCompressor', maxCount: 1 }, { name: 'DoorPhoto_VisibleSensor', maxCount: 1 }, { name: 'ATMMachine', maxCount: 1 }, { name: 'TempreatureSensorMounting', maxCount: 1 }, { name: 'AtmPanelBackroom', maxCount: 1 }, { name: 'SurviellancePanel', maxCount: 1 }, { name: 'UPS', maxCount: 1 }, { name: 'Batteries', maxCount: 1 }, { name: 'VsatRouter', maxCount: 1 }, { name: 'PorchLight', maxCount: 1 }, { name: 'Signage', maxCount: 1 }, { name: 'iATMBoxMountingPlace', maxCount: 1 }, { name: 'LightPanelLobbyLight', maxCount: 1 }, { name: 'AC1', maxCount: 1 }, { name: 'AC2', maxCount: 1 }]), (req, res) => {
+app.post('/baimage',authenticateToken, upload.fields([{ name: 'ATMOutdoorPhoto', maxCount: 1 }, { name: 'ACCompressor', maxCount: 1 }, { name: 'DoorPhoto_VisibleSensor', maxCount: 1 }, { name: 'ATMMachine', maxCount: 1 }, { name: 'TempreatureSensorMounting', maxCount: 1 }, { name: 'AtmPanelBackroom', maxCount: 1 }, { name: 'SurviellancePanel', maxCount: 1 }, { name: 'UPS', maxCount: 1 }, { name: 'Batteries', maxCount: 1 }, { name: 'VsatRouter', maxCount: 1 }, { name: 'PorchLight', maxCount: 1 }, { name: 'Signage', maxCount: 1 }, { name: 'iATMBoxMountingPlace', maxCount: 1 }, { name: 'LightPanelLobbyLight', maxCount: 1 }, { name: 'AC1', maxCount: 1 }, { name: 'AC2', maxCount: 1 }]), (req, res) => {
 
   const AC1 = req.files['AC1'][0].buffer;
   const AC2 = req.files['AC2'][0].buffer;
@@ -877,7 +876,7 @@ app.post('/baimage', upload.fields([{ name: 'ATMOutdoorPhoto', maxCount: 1 }, { 
 });
 
 // Routes
-app.post('/beforeupdt', upload.fields([{ name: 'ATMOutdoorPhoto', maxCount: 1 }, { name: 'ACCompressor', maxCount: 1 }, { name: 'DoorPhoto_VisibleSensor', maxCount: 1 }, { name: 'ATMMachine', maxCount: 1 }, { name: 'TempreatureSensorMounting', maxCount: 1 }, { name: 'AtmPanelBackroom', maxCount: 1 }, { name: 'SurviellancePanel', maxCount: 1 }, { name: 'UPS', maxCount: 1 }, { name: 'Batteries', maxCount: 1 }, { name: 'VsatRouter', maxCount: 1 }, { name: 'PorchLight', maxCount: 1 }, { name: 'Signage', maxCount: 1 }, { name: 'iATMBoxMountingPlace', maxCount: 1 }, { name: 'LightPanelLobbyLight', maxCount: 1 }, { name: 'AC1', maxCount: 1 }, { name: 'AC2', maxCount: 1 }]), (req, res) => {
+app.post('/beforeupdt',authenticateToken, upload.fields([{ name: 'ATMOutdoorPhoto', maxCount: 1 }, { name: 'ACCompressor', maxCount: 1 }, { name: 'DoorPhoto_VisibleSensor', maxCount: 1 }, { name: 'ATMMachine', maxCount: 1 }, { name: 'TempreatureSensorMounting', maxCount: 1 }, { name: 'AtmPanelBackroom', maxCount: 1 }, { name: 'SurviellancePanel', maxCount: 1 }, { name: 'UPS', maxCount: 1 }, { name: 'Batteries', maxCount: 1 }, { name: 'VsatRouter', maxCount: 1 }, { name: 'PorchLight', maxCount: 1 }, { name: 'Signage', maxCount: 1 }, { name: 'iATMBoxMountingPlace', maxCount: 1 }, { name: 'LightPanelLobbyLight', maxCount: 1 }, { name: 'AC1', maxCount: 1 }, { name: 'AC2', maxCount: 1 }]), (req, res) => {
 
   const AC1 = req.files['AC1'][0].buffer;
   const AC2 = req.files['AC2'][0].buffer;
@@ -906,7 +905,7 @@ app.post('/beforeupdt', upload.fields([{ name: 'ATMOutdoorPhoto', maxCount: 1 },
 
   const values = [AC1, AC2, atm_id, ATMOutdoorPhoto, Signage, ACCompressor, DoorPhoto_VisibleSensor, ATMMachine, TempreatureSensorMounting,
     AtmPanelBackroom, SurviellancePanel, UPS, Batteries, VsatRouter, PorchLight, LightPanelLobbyLight, iATMBoxMountingPlace, atmaddress, c_id];
-  
+
   connection.query(sql, values, (err, results) => {
     if (err) {
       console.log(err);
@@ -918,7 +917,7 @@ app.post('/beforeupdt', upload.fields([{ name: 'ATMOutdoorPhoto', maxCount: 1 },
   })
 });
 
-app.post('/afterimage', upload.fields([{ name: 'iATMBox', maxCount: 1 }, { name: 'ATMOutdoorPhoto', maxCount: 1 }, { name: 'ACCompressor', maxCount: 1 }, { name: 'DoorPhoto_VisibleSensor', maxCount: 1 }, { name: 'ATMMachine', maxCount: 1 }, { name: 'TempreatureSensorMounting', maxCount: 1 }, { name: 'AtmPanelBackroom', maxCount: 1 }, { name: 'SurviellancePanel', maxCount: 1 }, { name: 'UPS', maxCount: 1 }, { name: 'Batteries', maxCount: 1 }, { name: 'VsatRouter', maxCount: 1 }, { name: 'PorchLight', maxCount: 1 }, { name: 'Signage', maxCount: 1 }, { name: 'LightPanelLobbyLight', maxCount: 1 }, { name: 'AC1', maxCount: 1 }, { name: 'AC2', maxCount: 1 }]), (req, res) => {
+app.post('/afterimage',authenticateToken, upload.fields([{ name: 'iATMBox', maxCount: 1 }, { name: 'ATMOutdoorPhoto', maxCount: 1 }, { name: 'ACCompressor', maxCount: 1 }, { name: 'DoorPhoto_VisibleSensor', maxCount: 1 }, { name: 'ATMMachine', maxCount: 1 }, { name: 'TempreatureSensorMounting', maxCount: 1 }, { name: 'AtmPanelBackroom', maxCount: 1 }, { name: 'SurviellancePanel', maxCount: 1 }, { name: 'UPS', maxCount: 1 }, { name: 'Batteries', maxCount: 1 }, { name: 'VsatRouter', maxCount: 1 }, { name: 'PorchLight', maxCount: 1 }, { name: 'Signage', maxCount: 1 }, { name: 'LightPanelLobbyLight', maxCount: 1 }, { name: 'AC1', maxCount: 1 }, { name: 'AC2', maxCount: 1 }]), (req, res) => {
 
   const AC1 = req.files['AC1'][0].buffer;
   const AC2 = req.files['AC2'][0].buffer;
@@ -956,7 +955,7 @@ app.post('/afterimage', upload.fields([{ name: 'iATMBox', maxCount: 1 }, { name:
 });
 
 // Routes
-app.post('/afterupdt', upload.fields([{ name: 'iATMBox', maxCount: 1 }, { name: 'ATMOutdoorPhoto', maxCount: 1 }, { name: 'ACCompressor', maxCount: 1 }, { name: 'DoorPhoto_VisibleSensor', maxCount: 1 }, { name: 'ATMMachine', maxCount: 1 }, { name: 'TempreatureSensorMounting', maxCount: 1 }, { name: 'AtmPanelBackroom', maxCount: 1 }, { name: 'SurviellancePanel', maxCount: 1 }, { name: 'UPS', maxCount: 1 }, { name: 'Batteries', maxCount: 1 }, { name: 'VsatRouter', maxCount: 1 }, { name: 'PorchLight', maxCount: 1 }, { name: 'Signage', maxCount: 1 }, { name: 'LightPanelLobbyLight', maxCount: 1 }, { name: 'AC1', maxCount: 1 }, { name: 'AC2', maxCount: 1 }]), (req, res) => {
+app.post('/afterupdt',authenticateToken, upload.fields([{ name: 'iATMBox', maxCount: 1 }, { name: 'ATMOutdoorPhoto', maxCount: 1 }, { name: 'ACCompressor', maxCount: 1 }, { name: 'DoorPhoto_VisibleSensor', maxCount: 1 }, { name: 'ATMMachine', maxCount: 1 }, { name: 'TempreatureSensorMounting', maxCount: 1 }, { name: 'AtmPanelBackroom', maxCount: 1 }, { name: 'SurviellancePanel', maxCount: 1 }, { name: 'UPS', maxCount: 1 }, { name: 'Batteries', maxCount: 1 }, { name: 'VsatRouter', maxCount: 1 }, { name: 'PorchLight', maxCount: 1 }, { name: 'Signage', maxCount: 1 }, { name: 'LightPanelLobbyLight', maxCount: 1 }, { name: 'AC1', maxCount: 1 }, { name: 'AC2', maxCount: 1 }]), (req, res) => {
 
   // Extract file buffers
   const AC1 = req.files['AC1'][0].buffer;
@@ -1304,9 +1303,9 @@ function generatePDF(data, project) {
       doc.rect(350, 346, 342, 20).stroke();
       doc.font('Times-Bold').fontSize(12).text('Remarks', 355, 351, { width: 332, height: 10, align: 'center' })
 
-      doc.rect(8, 366, 114, 80).stroke();
+      doc.rect(8, 366, 114, 100).stroke();
       doc.font('Times-Bold').fontSize(12).text('1', 13, 401, { width: 104, height: 70, align: 'center' })
-      doc.rect(122, 366, 114, 80).stroke();
+      doc.rect(122, 366, 114, 100).stroke();
       doc.font('Times-Bold').fontSize(12).text('UPS', 127, 401, { width: 104, height: 70, align: 'center' })
 
       doc.rect(236, 366, 114, 20).stroke();
@@ -1317,6 +1316,8 @@ function generatePDF(data, project) {
       doc.font('Times-Bold').fontSize(10).text('Total No. of Battries', 241, 411, { width: 104, height: 10, align: 'left' })
       doc.rect(236, 426, 114, 20).stroke();
       doc.font('Times-Bold').fontSize(10).text('Battery Voltage', 241, 431, { width: 104, height: 10, align: 'left' })
+      doc.rect(236, 446, 114, 20).stroke();
+      doc.font('Times-Bold').fontSize(10).text('Type Of Batteries', 241, 451, { width: 104, height: 10, align: 'left' })
 
       doc.rect(350, 366, 342, 20).stroke();
       doc.font('Times-Bold').fontSize(10).text('' + row.ups_make_model, 355, 371, { width: 332, height: 10, align: 'left' })
@@ -1326,128 +1327,147 @@ function generatePDF(data, project) {
       doc.font('Times-Bold').fontSize(10).text('' + row.ups_total_no_batt, 355, 411, { width: 332, height: 10, align: 'left' })
       doc.rect(350, 426, 342, 20).stroke();
       doc.font('Times-Bold').fontSize(10).text('' + row.ups_batt_voltage, 355, 431, { width: 332, height: 10, align: 'left' })
-
-      doc.rect(8, 446, 114, 40).stroke();
-      doc.font('Times-Bold').fontSize(12).text('2', 13, 466, { width: 104, height: 30, align: 'center' })
-      doc.rect(122, 446, 114, 40).stroke();
-      doc.font('Times-Bold').fontSize(12).text('Electrical System', 127, 461, { width: 104, height: 30, align: 'center' })
-      doc.rect(236, 446, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('Electrical SLD', 241, 451, { width: 104, height: 10, align: 'left' })
-      doc.rect(236, 466, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('Total No. of Panels', 241, 471, { width: 104, height: 10, align: 'left' })
-
       doc.rect(350, 446, 342, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('' + row.elec_sys_sld, 355, 451, { width: 332, height: 10, align: 'left' })
-      doc.rect(350, 466, 342, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('' + row.elec_sys_tot_no_panels, 355, 471, { width: 332, height: 10, align: 'left' })
+      doc.font('Times-Bold').fontSize(10).text('' + row.types_of_batt, 355, 451, { width: 332, height: 10, align: 'left' })
 
-      doc.rect(8, 486, 114, 40).stroke();
-      doc.font('Times-Bold').fontSize(12).text('3', 13, 506, { width: 104, height: 30, align: 'center' })
-      doc.rect(122, 486, 114, 40).stroke();
-      doc.font('Times-Bold').fontSize(12).text(' Light', 127, 501, { width: 104, height: 30, align: 'center' })
+
+
+      doc.rect(8, 466, 114, 40).stroke();
+      doc.font('Times-Bold').fontSize(12).text('2', 13, 486, { width: 104, height: 30, align: 'center' })
+      doc.rect(122, 466, 114, 40).stroke();
+      doc.font('Times-Bold').fontSize(12).text('Electrical System', 127, 481, { width: 104, height: 30, align: 'center' })
+      doc.rect(236, 466, 114, 20).stroke();
+      doc.font('Times-Bold').fontSize(10).text('Electrical SLD', 241, 471, { width: 104, height: 10, align: 'left' })
       doc.rect(236, 486, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('Type', 241, 491, { width: 104, height: 10, align: 'left' })
-      doc.rect(236, 506, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('No. of Lights', 241, 511, { width: 104, height: 10, align: 'left' })
+      doc.font('Times-Bold').fontSize(10).text('Total No. of Panels', 241, 491, { width: 104, height: 10, align: 'left' })
+
+      doc.rect(350, 466, 342, 20).stroke();
+      doc.font('Times-Bold').fontSize(10).text('' + row.elec_sys_sld, 355, 471, { width: 332, height: 10, align: 'left' })
       doc.rect(350, 486, 342, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('' + row.light_led, 355, 491, { width: 332, height: 10, align: 'left' })
-      doc.rect(350, 506, 342, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('' + row.light_no_of_lights, 355, 511, { width: 332, height: 10, align: 'left' })
-      doc.rect(8, 526, 114, 40).stroke();
-      doc.font('Times-Bold').fontSize(12).text('4', 13, 546, { width: 104, height: 30, align: 'center' })
-      doc.rect(122, 526, 114, 40).stroke();
-      doc.font('Times-Bold').fontSize(12).text(' Signage', 127, 541, { width: 104, height: 30, align: 'center' })
+      doc.font('Times-Bold').fontSize(10).text('' + row.elec_sys_tot_no_panels, 355, 491, { width: 332, height: 10, align: 'left' })
+
+      doc.rect(8, 506, 114, 80).stroke();
+      doc.font('Times-Bold').fontSize(12).text('3', 13, 536, { width: 104, height: 30, align: 'center' })
+      doc.rect(122, 506, 114, 80).stroke();
+      doc.font('Times-Bold').fontSize(12).text(' Light', 127, 541, { width: 104, height: 30, align: 'center' })
+
+
+
+      doc.rect(236, 506, 114, 20).stroke();
+      doc.font('Times-Bold').fontSize(10).text('Type', 241, 511, { width: 104, height: 10, align: 'left' })
       doc.rect(236, 526, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('Signage Status', 241, 531, { width: 104, height: 10, align: 'left' })
+      doc.font('Times-Bold').fontSize(10).text('No. of Lights', 241, 531, { width: 104, height: 10, align: 'left' })
       doc.rect(236, 546, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('Timing', 241, 551, { width: 104, height: 10, align: 'left' })
-      doc.rect(350, 526, 342, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('' + row.signage_status, 355, 531, { width: 332, height: 10, align: 'left' })
-      doc.rect(350, 546, 342, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('' + row.signage_timing, 355, 551, { width: 332, height: 10, align: 'left' })
-
-
-
-      doc.rect(8, 566, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(12).text('5', 13, 571, { width: 104, height: 10, align: 'center' })
-      doc.rect(122, 566, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(12).text(' ATM Door', 127, 571, { width: 104, height: 30, align: 'center' })
+      doc.font('Times-Bold').fontSize(10).text('Lollipop Light', 241, 551, { width: 104, height: 10, align: 'left' })
       doc.rect(236, 566, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('Door Sensor', 241, 571, { width: 104, height: 10, align: 'left' })
+      doc.font('Times-Bold').fontSize(10).text('Porch Light', 241, 571, { width: 104, height: 10, align: 'left' })
+
+      doc.rect(350, 506, 342, 20).stroke();
+      doc.font('Times-Bold').fontSize(10).text('' + row.light_led, 355, 511, { width: 332, height: 10, align: 'left' })
+      doc.rect(350, 526, 342, 20).stroke();
+      doc.font('Times-Bold').fontSize(10).text('' + row.light_no_of_lights, 355, 531, { width: 332, height: 10, align: 'left' })
+      doc.rect(350, 546, 342, 20).stroke();
+      doc.font('Times-Bold').fontSize(10).text('' + row.lollipop_light, 355, 551, { width: 332, height: 10, align: 'left' })
       doc.rect(350, 566, 342, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('' + row.atm_door_status, 355, 571, { width: 332, height: 10, align: 'left' })
+      doc.font('Times-Bold').fontSize(10).text('' + row.porch_light, 355, 571, { width: 332, height: 10, align: 'left' })
 
 
-
-      doc.rect(8, 586, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(12).text('6', 13, 591, { width: 104, height: 10, align: 'center' })
-      doc.rect(122, 586, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(12).text(' Door Sensor', 127, 591, { width: 104, height: 10, align: 'center' })
+      doc.rect(8, 586, 114, 40).stroke();
+      doc.font('Times-Bold').fontSize(12).text('4', 13, 606, { width: 104, height: 30, align: 'center' })
+      doc.rect(122, 586, 114, 40).stroke();
+      doc.font('Times-Bold').fontSize(12).text(' Signage', 127, 601, { width: 104, height: 30, align: 'center' })
       doc.rect(236, 586, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('Yes/No', 241, 591, { width: 104, height: 10, align: 'left' })
-      doc.rect(350, 586, 342, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('' + row.door_sensor, 355, 591, { width: 332, height: 10, align: 'left' })
-
-
-      doc.rect(8, 606, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(12).text('7', 13, 611, { width: 104, height: 10, align: 'center' })
-      doc.rect(122, 606, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(12).text('ATM', 127, 611, { width: 104, height: 10, align: 'center' })
+      doc.font('Times-Bold').fontSize(10).text('Signage Status', 241, 591, { width: 104, height: 10, align: 'left' })
       doc.rect(236, 606, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('ATM Count', 241, 611, { width: 104, height: 10, align: 'left' })
+      doc.font('Times-Bold').fontSize(10).text('Timing', 241, 611, { width: 104, height: 10, align: 'left' })
+      doc.rect(350, 586, 342, 20).stroke();
+      doc.font('Times-Bold').fontSize(10).text('' + row.signage_status, 355, 591, { width: 332, height: 10, align: 'left' })
       doc.rect(350, 606, 342, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('' + row.atm_count, 355, 611, { width: 332, height: 10, align: 'left' })
+      doc.font('Times-Bold').fontSize(10).text('' + row.signage_timing, 355, 611, { width: 332, height: 10, align: 'left' })
+
 
 
       doc.rect(8, 626, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(12).text('8', 13, 631, { width: 104, height: 10, align: 'center' })
+      doc.font('Times-Bold').fontSize(12).text('5', 13, 631, { width: 104, height: 10, align: 'center' })
       doc.rect(122, 626, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(12).text(' Site Images', 127, 631, { width: 104, height: 10, align: 'center' })
+      doc.font('Times-Bold').fontSize(12).text(' ATM Door Stopper', 127, 631, { width: 104, height: 30, align: 'center' })
       doc.rect(236, 626, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('Yes/No', 241, 631, { width: 104, height: 10, align: 'left' })
+      doc.font('Times-Bold').fontSize(10).text('Door Sensor Available', 241, 631, { width: 104, height: 10, align: 'left' })
       doc.rect(350, 626, 342, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('' + row.site_images, 355, 631, { width: 332, height: 10, align: 'left' })
+      doc.font('Times-Bold').fontSize(10).text('' + row.atm_door_status, 355, 631, { width: 332, height: 10, align: 'left' })
 
 
-      doc.rect(8, 646, 114, 40).stroke();
-      doc.font('Times-Bold').fontSize(12).text('9', 13, 661, { width: 104, height: 30, align: 'center' })
-      doc.rect(122, 646, 114, 40).stroke();
-      doc.font('Times-Bold').fontSize(12).text('Timer', 127, 661, { width: 104, height: 30, align: 'center' })
+
+      doc.rect(8, 646, 114, 20).stroke();
+      doc.font('Times-Bold').fontSize(12).text('6', 13, 651, { width: 104, height: 10, align: 'center' })
+      doc.rect(122, 646, 114, 20).stroke();
+      doc.font('Times-Bold').fontSize(12).text(' Door Sensor', 127, 651, { width: 104, height: 10, align: 'center' })
       doc.rect(236, 646, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('Singage-Digital/Analog', 241, 651, { width: 104, height: 10, align: 'left' })
-      doc.rect(236, 666, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('AC Timer-Digital/Analog', 241, 671, { width: 104, height: 10, align: 'left' })
+      doc.font('Times-Bold').fontSize(10).text('Yes/No', 241, 651, { width: 104, height: 10, align: 'left' })
       doc.rect(350, 646, 342, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('' + row.timer_signage, 355, 651, { width: 332, height: 10, align: 'left' })
-      doc.rect(350, 666, 342, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text('' + row.timer_ac1, 355, 671, { width: 332, height: 10, align: 'left' })
+      doc.font('Times-Bold').fontSize(10).text('' + row.door_sensor, 355, 651, { width: 332, height: 10, align: 'left' })
 
-      doc.rect(8, 686, 114, 40).stroke();
-      doc.font('Times-Bold').fontSize(12).text('10', 13, 701, { width: 104, height: 30, align: 'center' })
-      doc.rect(122, 686, 114, 40).stroke();
-      doc.font('Times-Bold').fontSize(12).text('Other Assest Details', 127, 701, { width: 104, height: 30, align: 'center' })
+
+      doc.rect(8, 666, 114, 20).stroke();
+      doc.font('Times-Bold').fontSize(12).text('7', 13, 671, { width: 104, height: 10, align: 'center' })
+      doc.rect(122, 666, 114, 20).stroke();
+      doc.font('Times-Bold').fontSize(12).text('ATM', 127, 671, { width: 104, height: 10, align: 'center' })
+      doc.rect(236, 666, 114, 20).stroke();
+      doc.font('Times-Bold').fontSize(10).text('ATM Count', 241, 671, { width: 104, height: 10, align: 'left' })
+      doc.rect(350, 666, 342, 20).stroke();
+      doc.font('Times-Bold').fontSize(10).text('' + row.atm_count, 355, 671, { width: 332, height: 10, align: 'left' })
+
+
+      doc.rect(8, 686, 114, 20).stroke();
+      doc.font('Times-Bold').fontSize(12).text('8', 13, 691, { width: 104, height: 10, align: 'center' })
+      doc.rect(122, 686, 114, 20).stroke();
+      doc.font('Times-Bold').fontSize(12).text(' Site Images', 127, 691, { width: 104, height: 10, align: 'center' })
       doc.rect(236, 686, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text(row.other_asset_details_desc1, 241, 691, { width: 104, height: 10, align: 'left' })
-      doc.rect(236, 706, 114, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text(row.other_asset_details_desc2, 241, 711, { width: 104, height: 10, align: 'left' })
+      doc.font('Times-Bold').fontSize(10).text('Yes/No', 241, 691, { width: 104, height: 10, align: 'left' })
       doc.rect(350, 686, 342, 20).stroke();
-      doc.font('Times-Bold').fontSize(10).text(row.details_desc_remarks1, 355, 691, { width: 332, height: 10, align: 'left' })
+      doc.font('Times-Bold').fontSize(10).text('' + row.site_images, 355, 691, { width: 332, height: 10, align: 'left' })
+
+
+      doc.rect(8, 706, 114, 40).stroke();
+      doc.font('Times-Bold').fontSize(12).text('9', 13, 716, { width: 104, height: 30, align: 'center' })
+      doc.rect(122, 706, 114, 40).stroke();
+      doc.font('Times-Bold').fontSize(12).text('Timer', 127, 716, { width: 104, height: 30, align: 'center' })
+      doc.rect(236, 706, 114, 20).stroke();
+      doc.font('Times-Bold').fontSize(10).text('Singage-Digital/Analog', 241, 711, { width: 104, height: 10, align: 'left' })
+      doc.rect(236, 726, 114, 20).stroke();
+      doc.font('Times-Bold').fontSize(10).text('AC Timer-Dig/Ana', 241, 731, { width: 104, height: 10, align: 'left' })
       doc.rect(350, 706, 342, 20).stroke();
+      doc.font('Times-Bold').fontSize(10).text('' + row.timer_signage, 355, 711, { width: 332, height: 10, align: 'left' })
+      doc.rect(350, 726, 342, 20).stroke();
+      doc.font('Times-Bold').fontSize(10).text('' + row.timer_ac1, 355, 731, { width: 332, height: 10, align: 'left' })
+
+      doc.rect(8, 746, 114, 40).stroke();
+      doc.font('Times-Bold').fontSize(12).text('10', 13, 761, { width: 104, height: 30, align: 'center' })
+      doc.rect(122, 746, 114, 40).stroke();
+      doc.font('Times-Bold').fontSize(12).text('Other Assest Details', 127, 761, { width: 104, height: 30, align: 'center' })
+      doc.rect(236, 746, 114, 20).stroke();
+      doc.font('Times-Bold').fontSize(10).text(row.other_asset_details_desc1, 241, 751, { width: 104, height: 10, align: 'left' })
+      doc.rect(236, 766, 114, 20).stroke();
+      doc.font('Times-Bold').fontSize(10).text(row.other_asset_details_desc2, 241, 751, { width: 104, height: 10, align: 'left' })
+      doc.rect(350, 746, 342, 20).stroke();
+      doc.font('Times-Bold').fontSize(10).text(row.details_desc_remarks1, 355, 691, { width: 332, height: 10, align: 'left' })
+      doc.rect(350, 766, 342, 20).stroke();
       doc.font('Times-Bold').fontSize(10).text(row.details_desc_remarks2, 355, 711, { width: 332, height: 10, align: 'left' })
 
       // problem pending
 
-      doc.rect(8, 726, 684, 200).stroke();
-      doc.font('Times-Bold').fontSize(12).text('Remarks:  ' + row.remarks, 13, 731, { width: 674, height: 141, align: 'left' })
-      doc.font('Times-Bold').fontSize(12).text('Authorized Signature: ', 13, 791, { width: 674, height: 141, align: 'left' })
-      doc.image('./authorised_signature.png', 55, 811, { width: 100, height: 40, align: 'center', valign: 'center' });
+      doc.rect(8, 786, 684, 150).stroke();
+      doc.font('Times-Bold').fontSize(12).text('Remarks:  ' + row.remarks, 13, 791, { width: 504, height: 141, align: 'left' })
+      //doc.rect(50, 806, 290, 150).stroke();
+      doc.font('Times-Bold').fontSize(12).text('Authorized Signature: ', 13, 841, { width: 504, height: 141, align: 'left' })
+      doc.image('./authorised_signature.png', 55, 861, { width: 100, height: 40, align: 'center', valign: 'center' });
     });
     data.engg_sign.forEach((row) => {
-      doc.font('Times-Bold').fontSize(12).text('Engineer Name: ' + row.engg_name, 391, 791, { width: 674, height: 141, align: 'left' })
-      doc.font('Times-Bold').fontSize(12).text('Engineer No.: ' + row.contact_no, 391, 811, { width: 674, height: 141, align: 'left' })
-      doc.font('Times-Bold').fontSize(12).text('Signature:', 391, 831, { width: 674, height: 141, align: 'left' })
-      doc.image(row.sign, 391, 848, { width: 100, height: 40 })
-    })
+      doc.font('Times-Bold').fontSize(12).text('Engineer Name: ' + row.engg_name, 345, 841, { width: 504, height: 141, align: 'left' })
+      doc.font('Times-Bold').fontSize(12).text('Engineer No.: ' + row.contact_no, 345, 861, { width: 504, height: 141, align: 'left' })
+      doc.font('Times-Bold').fontSize(12).text('Signature:', 345, 881, { width: 342, height: 141, align: 'left' })
+      doc.image(row.sign, 405, 875, { width: 100, height: 40 })
+    });
 
     doc.addPage();
     doc.fontSize(18).text('BEFORE INSTALLATION IMAGES', { align: 'center' });
