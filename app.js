@@ -18,12 +18,12 @@ const upload = multer({ storage });
 const jwt = require('jsonwebtoken');
 const moment = require('moment');
 const AWS = require('aws-sdk');
-const ses = new AWS.SES({
-  apiVersion: '2010-12-01',
-  accessKeyId: 'AKIATNFEXW5ZAMWNGM4Q',
-  secretAccessKey: '6KKI3taiLon4Uj3yBkZW7qRirtztirLryULXDjWz',
-  region: 'ap-south-1' // Change this to your desired AWS region
-});
+// const ses = new AWS.SES({
+//   apiVersion: '2010-12-01',
+//   accessKeyId: 'AKIATNFEXW5ZAMWNGM4Q',
+//   secretAccessKey: '6KKI3taiLon4Uj3yBkZW7qRirtztirLryULXDjWz',
+//   region: 'ap-south-1' // Change this to your desired AWS region
+// });
 // Create a MySQL database connection
 const connection = mysql.createPool({
   //  host: '3.7.158.221',
