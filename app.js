@@ -47,47 +47,13 @@ connection.getConnection((err) => {
 
 });
 
-app.post('/login', (req, res) => {
-  const { contact_num } = req.body;
-
-  // Check if the user exists based on contact_num
-  connection.query(
-    'SELECT * FROM user_login WHERE contact_num = ?',
-    [contact_num],
-    (err, results) => {
-      if (err) {
-        console.log(err);
-        res.status(500).json({ error: 'Internal server error' });
-        return;
-      }
-
-      if (results.length === 0) {
-        res.status(200).json({ error: 'Invalid contact number' });
-        return;
-      }
-
-      // User with the provided contact_num exists; proceed to step 2 (OTP generation)
-      const user = results[0];
-      sendOTP(user.email)
-        .then(() => {
-          res.status(200).json({ message: 'OTP sent to your email for verification' });
-        })
-        .catch((error) => {
-          console.error(error);
-          res.status(500).json({ error: 'Internal server error' });
-        });
-    }
-  );
-});
-
-// Routes
 // app.post('/login', (req, res) => {
-//   const { username, password } = req.body;
+//   const { contact_num } = req.body;
 
-//   // Check if the user exists and the password is correct
+//   // Check if the user exists based on contact_num
 //   connection.query(
-//     'SELECT * FROM user_login WHERE username = ? AND password = ?',
-//     [username, password],
+//     'SELECT * FROM user_login WHERE contact_num = ?',
+//     [contact_num],
 //     (err, results) => {
 //       if (err) {
 //         console.log(err);
@@ -96,7 +62,48 @@ app.post('/login', (req, res) => {
 //       }
 
 //       if (results.length === 0) {
-//         res.status(401).json({ error: 'Invalid username or password' });
+//         res.status(200).json({ error: 'Invalid contact number' });
+//         return;
+//       }
+
+//       // User with the provided contact_num exists; proceed to step 2 (OTP generation)
+//       const user = results[0];
+//       sendOTP(user.email)
+//         .then(() => {
+//           res.status(200).json({ message: 'OTP sent to your email for verification' });
+//         })
+//         .catch((error) => {
+//           console.error(error);
+//           res.status(500).json({ error: 'Internal server error' });
+//         });
+//     }
+//   );
+// });
+// Define the sendOTP function
+// function sendOTP(email) {
+
+//   console.log(`Sending OTP to ${email}`);
+//   // In a real-world scenario, you would send the OTP via email
+//   return Promise.resolve(); // Resolve the Promise to mimic successful OTP sending
+// }
+
+
+// app.post('/login', (req, res) => {
+//   const { contact_num } = req.body;
+
+//   // Check if the user exists and the password is correct
+//   connection.query(
+//     'SELECT * FROM user_login WHERE contact_num=?',
+//     [contact_num],
+//     (err, results) => {
+//       if (err) {
+//         console.log(err);
+//         res.status(500).json({ error: 'Internal server error' });
+//         return;
+//       }
+
+//       if (results.length === 0) {
+//         res.status(401).json({ error: 'Invalid contact_num' });
 //         return;
 //       }
 
@@ -113,48 +120,111 @@ app.post('/login', (req, res) => {
 //     }
 //   );
 // });
-function sendOTP(email) {
-  return new Promise((resolve, reject) => {
+// function sendOTP(email) {
+//   return new Promise((resolve, reject) => {
+//     const otp = randomstring.generate({ length: 6, charset: 'numeric' });
+//     const otpCreatedAt = new Date();
+//     const expiration_time = new Date(
+//       otpCreatedAt.setSeconds(otpCreatedAt.getSeconds() + 120)
+//     );
+
+//     // Save the OTP in the database
+//     connection.query(
+//       'UPDATE user_login SET otp = ?, expiration_time = ? WHERE email = ?',
+//       [otp, expiration_time, email],
+//       (updateErr) => {
+//         if (updateErr) {
+//           reject(updateErr);
+//           return;
+//         }
+
+//         // Send the OTP via email
+//         const params = {
+//           Destination: {
+//             ToAddresses: [email],
+//           },
+//           Message: {
+//             Body: { Html: { Charset: "UTF-8", Data: `Your OTP for login is: ${otp}` } },
+//             Subject: { Charset: 'UTF-8', Data: 'Your OTP for login' },
+//           },
+//           Source: 'alert@buildint.co', // This should be a verified SES sender email address
+//         };
+
+//         ses.sendEmail(params, (emailErr, data) => {
+//           if (emailErr) {
+//             reject(emailErr);
+//             console.log(emailErr)
+//           } else {
+//             resolve();
+//           }
+//         });
+//       }
+//     );
+//   });
+// }
+
+app.post('/login', (req, res) => {
+  const { contact_num } = req.body;
+
+  // Check if the user exists in the database
+  const checkQuery = 'SELECT * FROM user_login WHERE contact_num = ?';
+  connection.query(checkQuery, [contact_num], (err, results) => {
+    if (err) {
+      console.error('Error checking user:', err);
+      res.status(500).json({ error: 'Internal Server Errorss' });
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // Assuming email is retrieved from results, modify accordingly if not
+    const { email } = results[0]; // Assuming email is retrieved from the first result
+
+    // Generate a random 6-digit OTP
     const otp = randomstring.generate({ length: 6, charset: 'numeric' });
-    const otpCreatedAt = new Date();
-    const expiration_time = new Date(
-      otpCreatedAt.setSeconds(otpCreatedAt.getSeconds() + 120)
-    );
 
     // Save the OTP in the database
-    connection.query(
-      'UPDATE user_login SET otp = ?, expiration_time = ? WHERE email = ?',
-      [otp, expiration_time, email],
-      (updateErr) => {
-        if (updateErr) {
-          reject(updateErr);
+    const updateQuery = 'UPDATE user_login SET otp = ? WHERE email = ?';
+    connection.query(updateQuery, [otp, email], (updateErr) => {
+      if (updateErr) {
+        console.error('Error updating OTP in the database:', updateErr);
+        res.status(500).json({ error: 'Internal Server Errorpp' });
+        return;
+      }
+      const nodemailer = require('nodemailer');
+      // Send the OTP via email
+      const transporter = nodemailer.createTransport({
+        host: 'smtp.rediffmailpro.com',
+        port: 465,  
+        secure: true, // for SSL
+        auth: {
+          user: 'trainee.software@buildint.co',
+          pass: 'BuildINT@123',
+        },
+      });
+
+      const mailOptions = {
+        from: 'trainee.software@buildint.co',
+        to: email,
+        subject: 'Your OTP for Login',
+        text: `Your OTP for login is: ${otp}`,
+      };
+
+      transporter.sendMail(mailOptions, (emailErr) => {
+        if (emailErr) {
+          console.error('Error sending email:', emailErr);
+          res.status(500).json({ error: 'Internal dddServer Error' });
           return;
         }
 
-        // Send the OTP via email
-        const params = {
-          Destination: {
-            ToAddresses: [email],
-          },
-          Message: {
-            Body: { Html: { Charset: "UTF-8", Data: `Your OTP for login is: ${otp}` } },
-            Subject: { Charset: 'UTF-8', Data: 'Your OTP for login' },
-          },
-          Source: 'alert@buildint.co', // This should be a verified SES sender email address
-        };
-
-        ses.sendEmail(params, (emailErr, data) => {
-          if (emailErr) {
-            reject(emailErr);
-            console.log(emailErr)
-          } else {
-            resolve();
-          }
-        });
-      }
-    );
+        res.status(200).json({ message: 'OTP sent to your email for login' });
+      });
+    });
   });
-}
+});
 
 // Step 2: OTP Verification and Token Generation
 app.post('/verify', (req, res) => {
