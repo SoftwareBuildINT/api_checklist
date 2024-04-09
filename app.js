@@ -1653,3 +1653,78 @@ const port = process.env.PORT || 5001;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+//***************************************************Revisit************************************************
+
+// Routes 
+app.post('/Revisit-Project',authenticateToken, (req, res) => {
+  const {
+    location,
+    atm_id,
+    mse_name,
+    site_per_name,
+    site_per_cont_no,
+    date_of_visit,
+    visit_in_time,
+    ac1,
+    ac1_remark,
+    ac2,
+    ac2_remark,
+    lobby,
+    lobby_remark,
+    signage,
+    signage_remark,
+    temp_hum,
+    temp_hum_remark,
+    door_sensor,
+    door_sensor_remark,
+    earthing,
+    earthing_remark,
+    ups_charg_op,
+    ups_charg_op_remark,
+    iatm_box,
+    iatm_remark,
+    router,
+    router_remark,
+    battery,
+    battery_remark,
+    atm_machine,
+    atm_machine_remark,
+    visit_out_time,
+    issue_resolved,
+    remark,
+    engg_name,
+    engg_cont_no,
+    ServiceSupportName,
+    c_id
+  } = req.body;
+
+  // Insert form data into the MySQL database
+  const sql = `UPDATE revisit
+    SET
+      location=?, atm_id=?, mse_name=?, site_per_name=?, site_per_cont_no=?,
+      date_of_visit=?, visit_in_time=?, ac1=?, ac1_remark=?, ac2=?, ac2_remark=?,
+      lobby=?, lobby_remark=?, signage=?, signage_remark=?, temp_hum=?, temp_hum_remark=?,
+      door_sensor=?, door_sensor_remark=?, earthing=?, earthing_remark=?, ups_charg_op=?,
+      ups_charg_op_remark=?, iatm_box=?, iatm_remark=?, router=?, router_remark=?,
+      battery=?, battery_remark=?, atm_machine=?, atm_machine_remark=?,
+      visit_out_time=?, issue_resolved=?, remark=?, engg_name=?, engg_cont_no=?,ServiceSupportName=?
+      WHERE c_id = ?;`;
+  const values = [
+    location, atm_id, mse_name, site_per_name, site_per_cont_no,
+    date_of_visit, visit_in_time, ac1, ac1_remark, ac2, ac2_remark,
+    lobby, lobby_remark, signage, signage_remark, temp_hum, temp_hum_remark,
+    door_sensor, door_sensor_remark, earthing, earthing_remark, ups_charg_op,
+    ups_charg_op_remark, iatm_box, iatm_remark, router, router_remark,
+    battery, battery_remark, atm_machine, atm_machine_remark,
+    visit_out_time, issue_resolved, remark, engg_name, engg_cont_no,ServiceSupportName, c_id
+  ];
+
+  connection.query(sql, values, (err, results) => {
+    if (err) {
+      console.error('Error inserting data into MySQL:', err);
+      return res.status(500).json({ message: 'Error inserting data into the database.' });
+    }
+
+    return res.json({ message: 'Item added successfully', insertId: results["insertId"] });
+  });
+});
