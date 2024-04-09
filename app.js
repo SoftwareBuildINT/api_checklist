@@ -194,8 +194,6 @@ app.post('/login', (req, res) => {
         res.status(500).json({ error: 'Internal Server Errorpp' });
         return;
       }
-      const nodemailer = require('nodemailer');
-      // Send the OTP via email
       const transporter = nodemailer.createTransport({
         host: 'smtp.rediffmailpro.com',
         port: 465,  
@@ -204,8 +202,12 @@ app.post('/login', (req, res) => {
           user: 'trainee.software@buildint.co',
           pass: 'BuildINT@123',
         },
+        tls: {
+          // Do not fail on invalid certificates
+          rejectUnauthorized: false
+        }
       });
-
+      
       const mailOptions = {
         from: 'trainee.software@buildint.co',
         to: email,
@@ -246,7 +248,7 @@ app.post('/verify', (req, res) => {
       }
 
       const currentTime = new Date(); // get current Time
-      const otpExpiretime = new Date(results[0].expiration_time);
+      const otpExpiretime = new Date(currentTime.getTime() + 5 * 60 * 1000); 
       if (currentTime < otpExpiretime) {
         // OTP is valid; generate a JWT token
         const user = results[0];
@@ -1656,6 +1658,39 @@ app.listen(port, () => {
 //***************************************************Revisit************************************************
 
 // Routes 
+app.post('/updtRevisit-Project', authenticateToken, (req, res) => {
+  const {
+    location, atm_id, mse_name, site_per_name, site_per_cont_no,
+    date_of_visit, visit_in_time, ac1, ac1_remark, ac2, ac2_remark,
+    lobby, lobby_remark, signage, signage_remark, temp_hum, temp_hum_remark,
+    door_sensor, door_sensor_remark, earthing, earthing_remark, ups_charg_op,
+    ups_charg_op_remark, iatm_box, iatm_remark, router, router_remark,
+    battery, battery_remark, atm_machine, atm_machine_remark,
+    visit_out_time, issue_resolved, remark, engg_name, engg_cont_no,
+    ServiceSupportName, c_id
+  } = req.body;
+
+  const sql = `UPDATE Revisiteng SET
+    location=?, atm_id=?, mse_name=?, site_per_name=?, site_per_cont_no=?,
+    date_of_visit=?, visit_in_time=?, ac1=?, ac1_remark=?, ac2=?, ac2_remark=?,
+    lobby=?, lobby_remark=?, signage=?, signage_remark=?, temp_hum=?, temp_hum_remark=?,
+    door_sensor=?, door_sensor_remark=?, earthing=?, earthing_remark=?, ups_charg_op=?,
+    ups_charg_op_remark=?, iatm_box=?, iatm_remark=?, router=?, router_remark=?,
+    battery=?, battery_remark=?, atm_machine=?, atm_machine_remark=?,
+    visit_out_time=?, issue_resolved=?, remark=?, engg_name=?, engg_cont_no=?, ServiceSupportName=?
+    WHERE c_id = ?;`;
+
+  const values = Object.values(req.body).concat(c_id);
+
+  connection.query(sql, values, (err, results) => {
+    if (err) {
+      console.error('Error inserting data into MySQL:', err);
+      return res.status(500).json({ message: 'Error inserting data into the database.' });
+    }
+
+    return res.json({ message: 'Item update successfully', insertId: results["insertId"] });
+  });
+});
 app.post('/Revisit-Project',authenticateToken, (req, res) => {
   const {
     location,
@@ -1694,21 +1729,20 @@ app.post('/Revisit-Project',authenticateToken, (req, res) => {
     remark,
     engg_name,
     engg_cont_no,
-    ServiceSupportName,
-    c_id
+    ServiceSupportName
   } = req.body;
 
   // Insert form data into the MySQL database
-  const sql = `UPDATE revisit
-    SET
-      location=?, atm_id=?, mse_name=?, site_per_name=?, site_per_cont_no=?,
-      date_of_visit=?, visit_in_time=?, ac1=?, ac1_remark=?, ac2=?, ac2_remark=?,
-      lobby=?, lobby_remark=?, signage=?, signage_remark=?, temp_hum=?, temp_hum_remark=?,
-      door_sensor=?, door_sensor_remark=?, earthing=?, earthing_remark=?, ups_charg_op=?,
-      ups_charg_op_remark=?, iatm_box=?, iatm_remark=?, router=?, router_remark=?,
-      battery=?, battery_remark=?, atm_machine=?, atm_machine_remark=?,
-      visit_out_time=?, issue_resolved=?, remark=?, engg_name=?, engg_cont_no=?,ServiceSupportName=?
-      WHERE c_id = ?;`;
+  const sql = `INSERT INTO Revisiteng (
+    location, atm_id, mse_name, site_per_name, site_per_cont_no,
+    date_of_visit, visit_in_time, ac1, ac1_remark, ac2, ac2_remark,
+    lobby, lobby_remark, signage, signage_remark, temp_hum, temp_hum_remark,
+    door_sensor, door_sensor_remark, earthing, earthing_remark, ups_charg_op,
+    ups_charg_op_remark, iatm_box, iatm_remark, router, router_remark,
+    battery, battery_remark, atm_machine, atm_machine_remark,
+    visit_out_time, issue_resolved, remark, engg_name, engg_cont_no,ServiceSupportName
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?)`;
+
   const values = [
     location, atm_id, mse_name, site_per_name, site_per_cont_no,
     date_of_visit, visit_in_time, ac1, ac1_remark, ac2, ac2_remark,
@@ -1716,7 +1750,7 @@ app.post('/Revisit-Project',authenticateToken, (req, res) => {
     door_sensor, door_sensor_remark, earthing, earthing_remark, ups_charg_op,
     ups_charg_op_remark, iatm_box, iatm_remark, router, router_remark,
     battery, battery_remark, atm_machine, atm_machine_remark,
-    visit_out_time, issue_resolved, remark, engg_name, engg_cont_no,ServiceSupportName, c_id
+    visit_out_time, issue_resolved, remark, engg_name, engg_cont_no,ServiceSupportName
   ];
 
   connection.query(sql, values, (err, results) => {
@@ -1724,7 +1758,6 @@ app.post('/Revisit-Project',authenticateToken, (req, res) => {
       console.error('Error inserting data into MySQL:', err);
       return res.status(500).json({ message: 'Error inserting data into the database.' });
     }
-    
 
     return res.json({ message: 'Item added successfully', insertId: results["insertId"] });
   });
