@@ -1724,6 +1724,7 @@ app.post('/Revisit-Project',authenticateToken, (req, res) => {
       console.error('Error inserting data into MySQL:', err);
       return res.status(500).json({ message: 'Error inserting data into the database.' });
     }
+    
 
     return res.json({ message: 'Item added successfully', insertId: results["insertId"] });
   });
